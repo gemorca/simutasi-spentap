@@ -5,6 +5,7 @@ export const HALAMAN = {
   siswa: () => import('./halaman/siswa.js'),
   siswaMasuk: () => import('./halaman/mutasi.js'),
   persetujuan: () => import('./halaman/persetujuan.js'),
+  stafTu: () => import('./halaman/stafTu.js'),
   laporan: () => import('./halaman/laporan.js'),
   log: () => import('./halaman/log.js'),
   pengaturan: () => import('./halaman/pengaturan.js'),

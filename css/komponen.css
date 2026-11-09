@@ -381,3 +381,9 @@ dialog.dlg.dlg-impor { width: min(94vw, 44rem); overscroll-behavior: contain; }
   }
   html.dark .impor-aksi { background: rgb(18 27 45 / 0.96); border-top-color: #1f2a40; }
 }
+
+/* Halaman Staf Tata Usaha (pantauan Kepala Sekolah). */
+.staf-riwayat { max-height: 50dvh; overflow: auto; overscroll-behavior: contain; }
+@media (min-width: 640px) {
+  dialog.dlg.dlg-staf { width: min(94vw, 44rem); }
+}

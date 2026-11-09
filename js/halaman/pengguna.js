@@ -25,6 +25,10 @@ const ATURAN_BARU = {
   peran: ATURAN_DASAR.peran,
 }
 const PILIHAN_PERAN = Object.keys(NAMA_PERAN).map((p) => ({ nilai: p, label: NAMA_PERAN[p] }))
+// Administrator Utama hanya satu akun: tidak ditawarkan saat tambah pengguna.
+const PILIHAN_BARU = PILIHAN_PERAN.filter((o) => o.nilai !== 'admin')
+// Saat ubah: akun admin hanya melihat peran Admin, akun lain tidak bisa dijadikan Admin.
+const pilihanPeran = (u) => (u && u.peran === 'admin' ? PILIHAN_PERAN.filter((o) => o.nilai === 'admin') : PILIHAN_BARU)
 
 export function render(wadah, saya) {
   let daftar = []
@@ -67,7 +71,7 @@ export function render(wadah, saya) {
         },
         kosong: {
           ikon: IK_ORANG, judul: 'Belum ada pengguna',
-          teks: 'Buat akun Administrator, Petugas TU, atau Kepala Sekolah lewat tombol Tambah Pengguna.',
+          teks: 'Buat akun Petugas TU atau Kepala Sekolah lewat tombol Tambah Pengguna.',
         },
       })
       + barAksiBawah({ pilihan, satuan: SATUAN, sibuk }))
@@ -192,7 +196,7 @@ export function render(wadah, saya) {
 
     wadah.innerHTML = judulHalaman({
       judul: ubah ? 'Ubah Data Pengguna' : 'Tambah Pengguna Baru',
-      sub: ubah ? 'Perbarui nama, username, dan peran akun.' : 'Buat akun baru untuk Administrator, Petugas TU, atau Kepala Sekolah.',
+      sub: ubah ? 'Perbarui nama, username, dan peran akun.' : 'Buat akun baru untuk Petugas TU atau Kepala Sekolah.',
       aksi: `<button type="button" data-aksi="kembali" class="${KELAS.tombol}">Kembali</button>`,
     }) + `<form novalidate class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
       <div class="grid gap-5 sm:grid-cols-2">
@@ -206,7 +210,7 @@ export function render(wadah, saya) {
           label: 'Password awal', nama: 'password', tipe: 'password', wajib: true, catatan: 'Minimal 8 karakter.',
           placeholder: 'Minimal 8 karakter', atribut: { autocomplete: 'new-password' },
         })}
-        ${medan({ label: 'Peran Akun', nama: 'peran', nilai: nilai.peran, wajib: true, pilihan: PILIHAN_PERAN, placeholder: 'Pilih peran' })}
+        ${medan({ label: 'Peran Akun', nama: 'peran', nilai: nilai.peran, wajib: true, pilihan: pilihanPeran(u), placeholder: 'Pilih peran' })}
       </div>${barSimpan()}</form>`
     window.scrollTo(0, 0)
     pasangAksi(wadah, { kembali: () => tampilDaftar(false) })
