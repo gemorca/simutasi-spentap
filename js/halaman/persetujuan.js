@@ -31,7 +31,7 @@ export function render(wadah, pengguna) {
           { judul: 'Kelas Tujuan', nilai: (m) => m.nama_kelas },
           { judul: 'Tanggal Masuk', nilai: (m) => m.tanggal },
           { judul: 'Sekolah Asal', nilai: (m) => m.sekolah },
-          { judul: 'Diajukan Oleh', nilai: (m) => m.diajukan_oleh || '-' },
+          { judul: 'Diajukan Oleh', isi: 'kiri', nilai: (m) => m.diajukan_oleh || '-' },
           { judul: 'Status', di: 'tanda', html: (m) => lencana(m.status) },
           { judul: 'Aksi', rata: 'tengah', di: 'aksi', html: (m) => `<button type="button" data-aksi="buka" data-id="${esc(m.id)}" class="${KELAS.utama} ${KELAS.kecil}">${kepsek ? 'Tinjau Pengajuan' : 'Buka Detail'}</button>` },
         ],
