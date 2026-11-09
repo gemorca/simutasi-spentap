@@ -6,10 +6,14 @@ let tunda = null
 const mandiri = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
 const iOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-// Tombol hanya muncul di halaman login. Setelah masuk, form login hilang dan tombol ikut hilang.
+// Tombol hanya muncul saat form login tampil dan siap diisi.
+// Hilang di: layar "Memuat aplikasi", animasi sukses login, layar sambutan (splash), dan seluruh aplikasi.
 const diLogin = () => {
   const layar = document.getElementById('layar')
-  return !!layar && !layar.classList.contains('hidden') && !!document.getElementById('login-username')
+  if (!layar || layar.classList.contains('hidden')) return false
+  if (!document.getElementById('login-username')) return false
+  if (layar.classList.contains('login-sukses')) return false
+  return !layar.querySelector('.login-kirim-ok, .login-sambut')
 }
 const bisaTampil = () => diLogin() && !mandiri() && (tunda !== null || iOS())
 
@@ -183,8 +187,8 @@ function pantauLogin() {
   const pengamat = new MutationObserver(segarkan)
   const layar = document.getElementById('layar')
   const app = document.getElementById('aplikasi')
-  if (layar) pengamat.observe(layar, opsi)
-  if (app) pengamat.observe(app, opsi)
+  if (layar) pengamat.observe(layar, { ...opsi, subtree: true })
+  if (app) pengamat.observe(app, { attributes: true, attributeFilter: ['class'] })
 }
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
