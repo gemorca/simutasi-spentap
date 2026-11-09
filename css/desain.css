@@ -138,6 +138,20 @@ body[data-memuat="selesai"] #bar-muat { opacity: 0; transform: scaleX(1); transi
 #akun-tombol[aria-expanded="true"] svg:last-child { transform: rotate(180deg); }
 #akun-panel button { transition: background-color var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std); }
 
+/* Tombol akun di mobile (< 640px): pil berisi avatar + panah. Di sm ke atas tampilan semula. */
+@media (max-width: 639.98px) {
+  #akun-tombol {
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+    border-radius: 9999px;
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+  }
+  #akun-tombol:hover { background-color: #e2e8f0; border-color: #cbd5e1; }
+  html.dark #akun-tombol { background-color: var(--sub2); border-color: var(--line); }
+  html.dark #akun-tombol:hover { background-color: var(--sub); }
+}
+
 body .btn {
   position: relative;
   user-select: none;
