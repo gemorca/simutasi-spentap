@@ -27,7 +27,7 @@ export function render(wadah, pengguna) {
     akar.querySelector('[data-isi]').innerHTML = `<p class="mb-3 text-sm font-semibold text-slate-500">Jumlah Pengajuan: <strong class="text-slate-900">${esc(hasil.total)}</strong></p>`
       + tabel({
         kolom: [
-          { judul: 'Nama Siswa', html: (m) => `<strong class="text-slate-900 font-bold">${esc(m.nama_siswa)}</strong>` },
+          { judul: 'Nama Siswa', isi: 'kiri', html: (m) => `<strong class="text-slate-900 font-bold">${esc(m.nama_siswa)}</strong>` },
           { judul: 'Kelas Tujuan', nilai: (m) => m.nama_kelas },
           { judul: 'Tanggal Masuk', nilai: (m) => m.tanggal },
           { judul: 'Sekolah Asal', nilai: (m) => m.sekolah },
