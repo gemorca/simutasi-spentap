@@ -86,7 +86,7 @@ export function render(wadah, pengguna) {
     wadah.innerHTML = judulHalaman({
       judul: 'Kelola Kelas',
       sub: 'Atur data kelas, kapasitas kuota, dan wali kelas per tahun ajaran.',
-      aksi: `<button type="button" data-aksi="tambah" class="${KELAS.utama}">+ Tambah Kelas</button>`,
+      aksi: `<button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Kelas</button>`,
     }) + '<div data-isi></div>'
     pasangAksi(wadah, PETA_DAFTAR)
     if (segar) return muat()

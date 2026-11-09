@@ -95,6 +95,7 @@
   html.dark .scrollbar-thin { scrollbar-color: #334155 transparent; }
   html.dark ::placeholder { color: #64748b; }
   html.dark input:disabled, html.dark select:disabled, html.dark textarea:disabled { background-color: var(--sub); color: #64748b; }
+  html.dark .sapaan-nama { color: #f8fafc; }
 
   /* Komponen buatan sendiri (komponen.css / desain.css). Ditulis sebelum pemetaan kelas supaya kelas Tailwind pada elemen yang sama tetap menang. */
   html.dark #samping { background-color: #080e1c; border-color: #17213a; }

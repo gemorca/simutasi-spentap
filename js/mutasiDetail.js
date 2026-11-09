@@ -67,7 +67,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   const keluar = () => { hapusTerbuka(); onKembali() }
   simpan()
 
-  const tombolKembali = `<p class="mb-4"><button type="button" data-aksi="kembali" class="${KELAS.tombol}">&larr; Kembali ke daftar</button></p>`
+  const tombolKembali = `<p class="mb-4"><button type="button" data-aksi="kembali" class="${KELAS.tombol}">Kembali ke daftar</button></p>`
 
   const ambil = async () => {
     const [d, r] = await Promise.all([panggilApi('mutasiDetail', { id }), panggilApi('mutasiRiwayat', { id })])

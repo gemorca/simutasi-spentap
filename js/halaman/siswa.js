@@ -38,7 +38,7 @@ export function render(wadah, pengguna) {
       ? 'Kelola data siswa aktif sekolah.'
       : bisaTambah ? 'Tambah atau impor siswa baru. Ubah dan hapus data khusus Administrator.' : 'Daftar seluruh siswa aktif (mode lihat).',
     aksi: dengan && bisaTambah
-      ? `<button type="button" data-aksi="impor" class="${KELAS.tombol}">Impor Excel/CSV</button><button type="button" data-aksi="tambah" class="${KELAS.utama}">+ Tambah Siswa</button>`
+      ? `<button type="button" data-aksi="impor" class="${KELAS.tombol}">Impor Excel/CSV</button><button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Siswa</button>`
       : '',
   })
 

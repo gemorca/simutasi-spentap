@@ -95,7 +95,7 @@ export function render(wadah, onBerhasil) {
           <div data-medan="peran" class="grid gap-1.5">
             <label for="login-peran" class="text-sm font-semibold text-slate-800">Jenis pengguna</label>
             <select id="login-peran" name="peran" class="${KELAS_INPUT} pr-3">
-              <option value="" selected disabled>Pilih jenis pengguna</option>
+              <option value="" selected disabled>Pilih Jenis Pengguna</option>
               <option value="admin">Administrator Utama</option>
               <option value="kepala_sekolah">Kepala Sekolah</option>
               <option value="petugas_tu">Petugas TU</option>

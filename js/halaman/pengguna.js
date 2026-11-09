@@ -96,7 +96,7 @@ export function render(wadah, saya) {
     wadah.innerHTML = judulHalaman({
       judul: 'Kelola Pengguna',
       sub: 'Manajemen akun Administrator, Petugas TU, dan Kepala Sekolah.',
-      aksi: `<button type="button" data-aksi="tambah" class="${KELAS.utama}">+ Tambah Pengguna</button>`,
+      aksi: `<button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Pengguna</button>`,
     }) + '<div data-isi></div>'
     pasangAksi(wadah, PETA_DAFTAR)
     if (segar) return muat()

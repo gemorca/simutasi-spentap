@@ -96,8 +96,10 @@ function tampil(d) {
 }
 
 export function render(wadah, pengguna) {
-  wadah.innerHTML = judulHalaman({ judul: 'Beranda Utama', sub: sapaanWaktu() + ', ' + pengguna.nama + '.' })
-    + '<div data-periode></div><div data-isi></div>'
+  wadah.innerHTML = judulHalaman({
+    judul: 'Beranda Utama',
+    subHtml: esc(sapaanWaktu() + ', ') + '<strong class="sapaan-nama">' + esc(pengguna.nama) + '</strong>.',
+  }) + '<div data-periode></div><div data-isi></div>'
   const isi = wadah.querySelector('[data-isi]')
   const periode = pengendaliPeriode(wadah.querySelector('[data-periode]'), () => muat())
   periode.gambar()
