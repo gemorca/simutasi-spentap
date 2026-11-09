@@ -1,0 +1,181 @@
+/* Tampilan login: foto sekolah sebagai latar, kartu naik dari bawah, logo geser dari kiri,
+   judul menyapu masuk dengan gradien biru-putih yang terus bergerak.
+   Dimuat setelah desain.css. Hanya tampilan. Hormati reduced-motion.
+   Foto latar: assets/background-sekolah.png */
+
+:root { --l-lambat: cubic-bezier(0.22, 0.8, 0.3, 1); }
+
+@keyframes l-card-naik { from { opacity: 0; transform: translateY(72px); } to { opacity: 1; transform: none; } }
+@keyframes l-dari-kiri { from { opacity: 0; transform: translateX(-56px); } to { opacity: 1; transform: none; } }
+@keyframes l-naik-halus { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes l-sapu {
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+  to   { opacity: 1; transform: none; filter: blur(0); -webkit-mask-position: 0 0; mask-position: 0 0; }
+}
+@keyframes l-gradien { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+@keyframes l-zoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+@keyframes l-melayang {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5vmax, 4vmax, 0) scale(1.15); }
+}
+@keyframes l-denyut { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.9); opacity: 0; } }
+@keyframes l-kilap { from { transform: translateX(-130%) skewX(-18deg); } to { transform: translateX(260%) skewX(-18deg); } }
+
+/* ---------- Latar: foto sekolah + zoom pelan + lapisan gelap agar kartu tetap jelas ---------- */
+#layar { position: relative; background-color: #0f172a; }
+#layar::before,
+#layar::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#layar::before {
+  background: url("../assets/background-sekolah.png") center / cover no-repeat, #0f172a;
+  transform-origin: 50% 60%;
+  animation: l-zoom 30s ease-in-out infinite alternate;
+  will-change: transform;
+}
+#layar::after {
+  background:
+    radial-gradient(ellipse at 50% 45%, transparent 25%, rgb(2 6 23 / 0.5) 100%),
+    linear-gradient(180deg, rgb(15 23 42 / 0.42), rgb(15 23 42 / 0.66));
+}
+#layar > div { position: relative; z-index: 1; }
+
+/* ---------- Kartu login muncul dari bawah ke atas ---------- */
+#layar > .login-kartu { animation: l-card-naik 1500ms var(--l-lambat) both; }
+
+/* Isian form ikut melambat (menimpa stagger cepat di desain.css). */
+#form-login > * { animation-duration: 900ms; animation-timing-function: var(--l-lambat); }
+#form-login > :nth-child(1) { animation-delay: 700ms; }
+#form-login > :nth-child(2) { animation-delay: 850ms; }
+#form-login > :nth-child(3) { animation-delay: 1000ms; }
+#form-login > :nth-child(4) { animation-delay: 1100ms; }
+#form-login > :nth-child(5) { animation-delay: 1200ms; }
+
+/* ---------- Panel biru (desktop: samping, mobile: spanduk atas) ---------- */
+.login-logo { animation: l-dari-kiri 1500ms var(--l-lambat) 800ms both; }
+.login-nama { animation: l-dari-kiri 1500ms var(--l-lambat) 1100ms both; }
+.login-lencana { animation: l-naik-halus 1100ms var(--l-lambat) 1600ms both; }
+.login-isi { animation: l-naik-halus 1300ms var(--l-lambat) 3000ms both; }
+
+.login-orb { position: absolute; border-radius: 50%; pointer-events: none; }
+.login-orb-1 {
+  width: 20rem; height: 20rem; left: -6rem; top: -7rem;
+  background: radial-gradient(closest-side, rgb(59 130 246 / 0.28), transparent);
+  animation: l-melayang 14s ease-in-out infinite alternate;
+}
+.login-orb-2 {
+  width: 17rem; height: 17rem; right: -5rem; bottom: -6rem;
+  background: radial-gradient(closest-side, rgb(125 211 252 / 0.18), transparent);
+  animation: l-melayang 17s ease-in-out -5s infinite alternate-reverse;
+}
+.login-titik {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgb(148 163 184 / 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+}
+.login-denyut { position: relative; display: inline-flex; height: 0.5rem; width: 0.5rem; }
+.login-denyut::before, .login-denyut::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #60a5fa; }
+.login-denyut::before { animation: l-denyut 1.8s ease-out infinite; }
+
+/* ---------- Judul: menyapu masuk kiri ke kanan (naik + fokus), gradien biru-putih terus bergerak ---------- */
+.gradien-teks {
+  background-image: linear-gradient(90deg, #3b82f6 0%, #93c5fd 25%, #ffffff 50%, #93c5fd 75%, #3b82f6 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: l-gradien 5s linear infinite;
+}
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .gradien-teks { background: none; color: #bfdbfe; -webkit-text-fill-color: currentColor; }
+}
+.login-judul.gradien-teks,
+.login-sambut-nama.gradien-teks {
+  -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+  mask-image: linear-gradient(90deg, #000 40%, transparent 60%);
+  -webkit-mask-size: 300% 100%;
+  mask-size: 300% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: l-gradien 5s linear infinite, l-sapu var(--sapu-dur, 2400ms) var(--l-lambat) var(--sapu-tunda, 1800ms) both;
+}
+
+/* ---------- Tombol masuk ---------- */
+#form-login .login-kirim {
+  background-image: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #2563eb 100%);
+  background-size: 200% 100%;
+  transition: background-position 450ms var(--ease-out), transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+#form-login .login-kirim:hover:not(:disabled) { background-position: 100% 0; }
+#form-login .login-kirim::after {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: 0; width: 38%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
+  transform: translateX(-130%) skewX(-18deg);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  #form-login .login-kirim:hover:not(:disabled)::after { animation: l-kilap 700ms var(--ease-out); }
+}
+
+/* ---------- Login berhasil: tombol centang, kartu keluar, latar memburam, sambutan, lalu aplikasi masuk ---------- */
+@keyframes l-card-keluar { to { opacity: 0; transform: translateY(-48px) scale(0.96); } }
+@keyframes l-gambar { to { stroke-dashoffset: 0; } }
+@keyframes l-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes l-sambut-masuk { from { opacity: 0; } to { opacity: 1; } }
+@keyframes l-sambut-keluar { to { opacity: 0; transform: scale(1.05); } }
+@keyframes l-isi-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes l-app-masuk { from { opacity: 0; } to { opacity: 1; } }
+
+#layar::before { transition: filter 1000ms ease; }
+#layar.login-sukses::before { filter: blur(8px) brightness(0.78); }
+#layar > .login-kartu.login-keluar { animation: l-card-keluar 650ms var(--l-lambat) forwards; pointer-events: none; }
+
+#form-login .login-kirim.login-kirim-ok {
+  background-image: linear-gradient(135deg, #059669 0%, #10b981 50%, #059669 100%);
+  box-shadow: 0 10px 24px -8px rgb(16 185 129 / 0.55);
+  pointer-events: none;
+  animation: l-pop 450ms var(--ease-out);
+}
+.login-centang path { stroke-dasharray: 26; stroke-dashoffset: 26; animation: l-gambar 450ms ease-out 120ms forwards; }
+
+#layar > .login-sambut {
+  position: fixed; inset: 0; z-index: 2;
+  display: grid; place-content: center; justify-items: center; gap: 0.5rem;
+  padding: 1.5rem; text-align: center; cursor: pointer;
+  background: radial-gradient(ellipse at center, rgb(2 6 23 / 0.5), rgb(2 6 23 / 0.15) 72%);
+  animation: l-sambut-masuk 1300ms ease both;
+}
+#layar > .login-sambut.keluar { animation: l-sambut-keluar 700ms ease forwards; pointer-events: none; }
+.login-sambut-logo {
+  display: grid; place-items: center; width: 5rem; height: 5rem; margin-bottom: 0.75rem;
+  border-radius: 1.5rem; border: 1px solid rgb(255 255 255 / 0.22); background: rgb(255 255 255 / 0.1);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  animation: l-pop 1400ms var(--l-lambat) 300ms both;
+}
+.login-sambut-salam {
+  font-size: 1.125rem; font-weight: 600; color: #bfdbfe; letter-spacing: 0.02em;
+  animation: l-naik-halus 1400ms var(--l-lambat) 1000ms both;
+}
+@media (min-width: 640px) { .login-sambut-salam { font-size: 1.375rem; } }
+.login-sambut-nama {
+  --sapu-dur: 2200ms; --sapu-tunda: 1600ms;
+  max-width: 90vw; padding: 0.1em 0.05em 0.15em;
+  font-size: 2rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; overflow-wrap: anywhere;
+}
+@media (min-width: 640px) { .login-sambut-nama { font-size: 3.25rem; } }
+.login-sambut-bar { width: 11rem; height: 4px; margin-top: 1.25rem; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 0.18); animation: l-naik-halus 1100ms var(--l-lambat) 2100ms both; }
+.login-sambut-bar span { display: block; height: 100%; border-radius: inherit; transform-origin: left; background: linear-gradient(90deg, #3b82f6, #ffffff); animation: l-isi-bar 5000ms linear 2200ms both; }
+.login-sambut-info { font-size: 0.75rem; font-weight: 500; color: #cbd5e1; animation: l-naik-halus 1100ms var(--l-lambat) 2200ms both; }
+
+/* Aplikasi tampil dengan memudar halus setelah layar login ditutup. */
+#aplikasi:not(.hidden) { animation: l-app-masuk 600ms ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  #layar::before, .login-orb, .login-denyut::before, .gradien-teks,
+  #layar > .login-kartu, .login-logo, .login-nama, .login-lencana, .login-isi,
+  #layar > .login-sambut, .login-sambut-logo, .login-sambut-salam, .login-sambut-bar span, .login-centang path, #aplikasi:not(.hidden),
+  #form-login .login-kirim:hover:not(:disabled)::after { animation: none; }
+  .login-judul.gradien-teks, .login-sambut-nama.gradien-teks { animation: none; -webkit-mask-image: none; mask-image: none; }
+}

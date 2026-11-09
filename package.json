@@ -1,0 +1,11 @@
+{
+  "name": "sim-mutasi-siswa",
+  "private": true,
+  "scripts": {
+    "css": "tailwindcss -c tailwind.config.js -i css/tailwind-src.css -o css/tailwind.css --minify",
+    "css:watch": "tailwindcss -c tailwind.config.js -i css/tailwind-src.css -o css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
