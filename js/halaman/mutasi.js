@@ -89,7 +89,7 @@ export function render(wadah, pengguna) {
       sub: bisaTulis
         ? 'Catat siswa pindahan, lengkapi dokumen, lalu ajukan ke Kepala Sekolah.'
         : 'Pantau data siswa masuk. Keputusan persetujuan ada di menu Persetujuan.',
-      aksi: bisaTulis ? `<button type="button" data-aksi="tambah" class="${KELAS.utama}">+ Tambah Siswa Masuk</button>` : '',
+      aksi: bisaTulis ? `<button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Siswa Masuk</button>` : '',
     }) + formFilterMutasi(filter, kelas, OPSI_STATUS) + '<div data-isi></div>'
     pasangAksi(akar, {
       tambah: () => { if (bisaTulis) bukaForm('') },

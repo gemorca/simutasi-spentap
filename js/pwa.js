@@ -6,7 +6,12 @@ let tunda = null
 const mandiri = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
 const iOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-const bisaTampil = () => !mandiri() && (tunda !== null || iOS())
+// Tombol hanya muncul di halaman login. Setelah masuk, form login hilang dan tombol ikut hilang.
+const diLogin = () => {
+  const layar = document.getElementById('layar')
+  return !!layar && !layar.classList.contains('hidden') && !!document.getElementById('login-username')
+}
+const bisaTampil = () => diLogin() && !mandiri() && (tunda !== null || iOS())
 
 // Tombol tidak pernah hilang: tombol tutup (x) hanya mengecilkannya jadi ikon bulat. Pilihan diingat.
 const KUNCI_KECIL = 'pwa-tombol-kecil'
@@ -172,11 +177,22 @@ document.addEventListener('click', (e) => {
 
 window.matchMedia('(display-mode: standalone)').addEventListener('change', segarkan)
 
+// Pantau pergantian login <-> aplikasi supaya tombol muncul/hilang otomatis.
+function pantauLogin() {
+  const opsi = { childList: true, attributes: true, attributeFilter: ['class'] }
+  const pengamat = new MutationObserver(segarkan)
+  const layar = document.getElementById('layar')
+  const app = document.getElementById('aplikasi')
+  if (layar) pengamat.observe(layar, opsi)
+  if (app) pengamat.observe(app, opsi)
+}
+
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => { /* gagal daftar: aplikasi tetap jalan biasa */ })
   })
 }
 
+pantauLogin()
 segarkan()
 panduanOtomatis()
