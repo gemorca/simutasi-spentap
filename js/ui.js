@@ -433,7 +433,7 @@ export function tabel({ kolom, baris, idKey = 'id', aksi = null, pilih = null, k
   const isi = baris.map((b) => {
     const id = b[idKey]
     const dipilih = adaPilih && pilih.ada(id)
-    const sel = kolom.map((k) => `<td class="${SEL} text-slate-700 font-medium align-middle${k.isi === 'kiri' ? ' text-left' : (RATA[k.rata] || TENGAH)}">${nilaiSel(k, b)}</td>`).join('')
+    const sel = kolom.map((k) => `<td class="${SEL} text-slate-700 font-medium align-middle${k.isi === 'kiri' ? ' text-left' : (RATA[k.rata] || TENGAH)}"${k.isi === 'kiri' ? ' style="text-align:left"' : ''}>${nilaiSel(k, b)}</td>`).join('')
     return `<tr class="transition-colors ${dipilih ? 'bg-blue-50/70' : 'hover:bg-slate-50/70'}">
       ${adaPilih ? `<td class="${SEL} w-10 text-center">${centang(b, id, dipilih)}</td>` : ''}
       ${sel}
