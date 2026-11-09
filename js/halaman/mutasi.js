@@ -54,7 +54,7 @@ export function render(wadah, pengguna) {
           { judul: 'Kelas', nilai: (m) => m.nama_kelas },
           { judul: 'Tanggal Masuk', nilai: (m) => m.tanggal },
           { judul: 'Sekolah Asal', isi: 'kiri', nilai: (m) => m.sekolah },
-          { judul: 'Lampiran', rata: 'angka', nilai: (m) => (m.sumber === 'arsip' ? '-' : m.jumlah_lampiran) },
+          { judul: 'Lampiran', rata: 'angka', nilai: (m) => m.jumlah_lampiran },
           { judul: 'Status', di: 'tanda', html: (m) => lencana(m.status) },
           { judul: 'Aksi', rata: 'tengah', di: 'aksi', html: (m) => `<button type="button" data-aksi="buka" data-id="${esc(m.id)}" class="${KELAS.tombol} ${KELAS.kecil}">Buka Detail</button>` },
         ],

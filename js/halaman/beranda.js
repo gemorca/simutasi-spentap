@@ -3,6 +3,7 @@ import { esc, ikon, memuat, judulHalaman, statusKosong, tampilPesan } from '../u
 import { NAMA_BULAN, parameterPeriode, pengendaliPeriode } from '../periode.js'
 import { persen } from '../util.js'
 import { sapaanWaktu } from '../sapaan.js'
+import { urutKelas } from '../urutKelas.js'
 
 const IK_MASUK = 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M19 8v6M22 11h-6'
 const IK_AKTIF = 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'
@@ -91,7 +92,7 @@ function tampil(d) {
       ${judulSeksi('dash-kelas', IK_KELAS, 'Rekapitulasi per Kelas', p.tahun_ajaran)}
       ${d.per_kelas.length === 0
         ? statusKosong({ ikon: IK_KELAS, judul: 'Belum ada kelas', teks: 'Tambahkan kelas pada menu Kelas agar rekap kuota tampil di sini.' })
-        : `<div class="stagger grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr))]">${d.per_kelas.map(kartuKelas).join('')}</div>`}
+        : `<div class="stagger grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr))]">${[...d.per_kelas].sort(urutKelas).map(kartuKelas).join('')}</div>`}
     </section>`
 }
 

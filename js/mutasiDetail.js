@@ -16,6 +16,7 @@ const NAMA_AKSI = {
   MUTASI_NOMOR_SURAT: 'Nomor surat diubah',
   MUTASI_SURAT_TERBIT: 'Surat diterbitkan',
   MUTASI_ARSIP_IMPOR: 'Diimpor sebagai arsip',
+  MUTASI_ARSIP_LENGKAPI: 'Data arsip dilengkapi',
   LAMPIRAN_UNGGAH: 'Lampiran diunggah',
   LAMPIRAN_HAPUS: 'Lampiran dihapus',
 }
@@ -126,7 +127,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
       if (m.diajukan_oleh) baris += `<p class="mt-1">Diajukan oleh ${esc(m.diajukan_oleh)} (${esc(m.tanggal_diajukan)})</p>`
     } else if (m.status === 'Disetujui' && m.sumber === 'arsip') {
       judul = 'Data arsip (diimpor Admin)' + (m.tanggal_persetujuan ? ' (' + m.tanggal_persetujuan + ')' : '')
-      baris += '<p class="mt-1">Dicatat dari data manual lama. Tanpa lampiran dan tanpa surat keterangan di sistem.</p>'
+      baris += '<p class="mt-1">Dicatat dari data manual lama. Biodata dan lampiran dapat dilengkapi kapan saja. Tanpa surat keterangan di sistem.</p>'
     } else if (m.status === 'Disetujui') {
       judul = 'Disetujui' + oleh + tgl
       baris += m.nomor_surat
@@ -171,14 +172,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   }
 
   function kartuHeader(m) {
-    if (m.sumber === 'arsip') {
-      return `<section aria-label="Ringkasan siswa" class="mb-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
-          <div><dt class="text-xs font-semibold text-slate-400">NISN/NIS</dt><dd class="font-semibold text-slate-800">${esc(m.nisn_nis || '-')}</dd></div>
-          <div><dt class="text-xs font-semibold text-slate-400">Kelas tujuan</dt><dd class="font-semibold text-slate-800">${esc(m.nama_kelas || '-')}</dd></div>
-          <div><dt class="text-xs font-semibold text-slate-400">Tanggal masuk</dt><dd class="font-semibold text-slate-800">${esc(m.tanggal || '-')}</dd></div>
-        </dl></section>`
-    }
+    const arsip = m.sumber === 'arsip'
     const { lampiran, wajib } = detail
     const ada = (jd) => lampiran.some((l) => l.jenis_dokumen === jd)
     const lengkap = wajib.filter(ada).length
@@ -186,7 +180,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     const semua = wajib.length > 0 && lengkap === wajib.length
     const chip = (jd) => {
       const ok = ada(jd)
-      return `<li class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${ok ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-rose-200 bg-rose-50 text-rose-700'}">`
+      return `<li class="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold ${ok ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : arsip ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-rose-200 bg-rose-50 text-rose-700'}">`
         + `<span aria-hidden="true">${ok ? '&#10003;' : '&#10007;'}</span>${esc(jd)}<span class="sr-only">${ok ? ' (lengkap)' : ' (belum ada)'}</span></li>`
     }
     return `<section aria-label="Ringkasan siswa dan kelengkapan berkas" class="mb-5 flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
@@ -198,8 +192,8 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
           <div><dt class="text-xs font-semibold text-slate-400">Tanggal masuk</dt><dd class="font-semibold text-slate-800">${esc(m.tanggal || '-')}</dd></div>
         </dl>
         <div class="mb-2 flex items-center justify-between gap-2 text-sm">
-          <span class="font-bold text-slate-900">Kelengkapan berkas</span>
-          <span class="flex items-center gap-2"><span class="font-semibold text-slate-500">${lengkap} dari ${wajib.length}</span>${lencana(semua ? 'Disetujui' : 'Ditolak', semua ? 'Lengkap' : 'Belum lengkap')}</span></div>
+          <span class="font-bold text-slate-900">Kelengkapan berkas${arsip ? ' (opsional)' : ''}</span>
+          <span class="flex items-center gap-2"><span class="font-semibold text-slate-500">${lengkap} dari ${wajib.length}</span>${lencana(semua ? 'Disetujui' : arsip ? 'Diajukan' : 'Ditolak', semua ? 'Lengkap' : 'Belum lengkap')}</span></div>
         <div class="mb-3 h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin="0" aria-valuemax="${wajib.length}" aria-valuenow="${lengkap}" aria-label="Kelengkapan berkas wajib">
           <div class="h-full min-w-[2px] rounded-full bg-blue-600" style="width:${pers}%"></div></div>
         <ul class="flex flex-wrap gap-2">${wajib.map(chip).join('')}</ul>
@@ -234,9 +228,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   }
 
   function panelLampiran(bisaUbah) {
-    if (detail.mutasi.sumber === 'arsip') {
-      return `<div role="tabpanel" id="panel-lampiran" aria-labelledby="tab-lampiran"><p class="text-sm font-medium text-slate-500">Mutasi arsip tidak memakai lampiran. Dokumen asli tersimpan di berkas kertas sekolah.</p></div>`
-    }
+    const arsip = detail.mutasi.sumber === 'arsip'
     const { lampiran, wajib, maks_mb: maksMb } = detail
     const lengkap = wajib.filter((jd) => lampiran.some((l) => l.jenis_dokumen === jd)).length
     const daftar = wajib.concat(['Lainnya']).map((jd) => {
@@ -245,7 +237,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
       return `<li class="flex min-w-0 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="min-w-0">
           <div class="mb-3 flex items-center justify-between gap-2"><span class="font-bold text-slate-900">${esc(jd)}</span>
-            ${wajibIni ? lencana(files.length ? 'Disetujui' : 'Ditolak', files.length ? 'Lengkap' : 'Belum') : '<span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Opsional</span>'}</div>
+            ${wajibIni && !arsip ? lencana(files.length ? 'Disetujui' : 'Ditolak', files.length ? 'Lengkap' : 'Belum') : '<span class="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Opsional</span>'}</div>
           ${files.length === 0 ? '<p class="text-sm font-medium text-slate-400">Belum ada file terunggah</p>' : ''}
           ${files.map((l) => `<div class="flex min-w-0 items-center justify-between gap-2 border-t border-slate-100 py-1.5 text-sm">
             <span class="min-w-0 flex-1 truncate font-semibold text-slate-700" title="${esc(l.nama_file)}">${esc(l.nama_file)}</span>
@@ -259,7 +251,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
           <input type="file" data-jenis="${esc(jd)}" class="sr-only" accept="${jd === FOTO ? '.jpg,.jpeg,.png' : '.pdf,.jpg,.jpeg,.png'}" data-sibuk${sibuk ? ' disabled' : ''}></label>` : ''}</li>`
     }).join('')
     return `<div role="tabpanel" id="panel-lampiran" aria-labelledby="tab-lampiran">
-      <p class="mb-4 text-sm font-medium text-slate-500"><strong class="text-slate-900 font-bold">${lengkap} dari ${wajib.length}</strong> dokumen wajib lengkap. Format PDF, JPG, atau PNG, maksimal ${esc(maksMb)} MB per file.${wajib.includes(FOTO) ? ' Pas Foto hanya JPG atau PNG.' : ''}</p>
+      <p class="mb-4 text-sm font-medium text-slate-500">${arsip ? 'Data arsip: lampiran bersifat opsional, boleh dilengkapi bertahap. ' : `<strong class="text-slate-900 font-bold">${lengkap} dari ${wajib.length}</strong> dokumen wajib lengkap. `}Format PDF, JPG, atau PNG, maksimal ${esc(maksMb)} MB per file.${wajib.includes(FOTO) ? ' Pas Foto hanya JPG atau PNG.' : ''}</p>
       <ul class="grid min-w-0 grid-cols-1 gap-5 md:grid-cols-2">${daftar}</ul></div>`
   }
 
@@ -280,6 +272,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     const { mutasi: m, lampiran, wajib, peringatan } = detail
     const bisaUbah = !hanyaBaca && (m.status === 'Draft' || m.status === 'Ditolak')
     const arsip = m.sumber === 'arsip'
+    const bisaLengkapi = !hanyaBaca && arsip
     const bisaHapus = !hanyaBaca && bisaHapusMutasi && (m.status !== 'Disetujui' || arsip) // hapus: Admin saja (sama dengan backend)
     const tampilPutusan = bisaPutuskan && m.status === 'Diajukan'
     const tampilBatal = bisaBatalkan && m.status === 'Disetujui' && !arsip
@@ -289,6 +282,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
 
     const aksiJudul = [
       bisaUbah ? tombol('ubah', 'Ubah data') : '',
+      bisaLengkapi ? tombol('ubah', 'Lengkapi data', KELAS.utama + ' mut-utama') : '',
       bisaUbah ? tombol('ajukan', m.status === 'Ditolak' ? 'Ajukan ulang' : 'Ajukan ke Kepala Sekolah', KELAS.utama + ' mut-utama') : '',
       bisaNomor ? tombol('ubah-nomor', 'Ubah nomor surat') : '',
       tampilSurat ? tombol('cetak-surat', 'Cetak Surat Keterangan', KELAS.utama + ' mut-utama') : '',
@@ -302,7 +296,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     const tabs = [
       { id: 'data', label: 'Data Siswa' },
       arsip
-        ? { id: 'lampiran', label: 'Lampiran Berkas' }
+        ? { id: 'lampiran', label: 'Lampiran Berkas', badge: String(lampiran.length) }
         : { id: 'lampiran', label: 'Lampiran Berkas', badge: lengkap + '/' + wajib.length, kurang: lengkap < wajib.length },
       { id: 'riwayat', label: 'Riwayat Log', badge: String(riwayat.length) },
     ]
@@ -331,7 +325,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
       + kotakStatus(m)
       + putusan
       + barTab
-      + (tab === 'data' ? panelData(m) : tab === 'lampiran' ? panelLampiran(bisaUbah) : panelRiwayat(m)))
+      + (tab === 'data' ? panelData(m) : tab === 'lampiran' ? panelLampiran(bisaUbah || bisaLengkapi) : panelRiwayat(m)))
     muatFoto()
   }
 
