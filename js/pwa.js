@@ -8,16 +8,23 @@ const iOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const bisaTampil = () => !mandiri() && (tunda !== null || iOS())
 
+// Tombol tidak pernah hilang: tombol tutup (x) hanya mengecilkannya jadi ikon bulat. Pilihan diingat.
+const KUNCI_KECIL = 'pwa-tombol-kecil'
+function bacaKecil() {
+  try { return localStorage.getItem(KUNCI_KECIL) === '1' } catch (e) { return false }
+}
+
 function tombolLayang() {
   let el = document.getElementById('pwa-pasang')
   if (el) return el
   el = document.createElement('div')
   el.id = 'pwa-pasang'
   el.hidden = true
+  if (bacaKecil()) el.classList.add('pwa-kecil')
   el.innerHTML = '<button type="button" data-pwa-install class="pwa-tombol">'
     + '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>'
-    + '<span>Install Aplikasi</span></button>'
-    + '<button type="button" data-pwa-tutup class="pwa-tutup" aria-label="Sembunyikan tombol install">&times;</button>'
+    + '<span class="pwa-label">Install Aplikasi</span></button>'
+    + '<button type="button" data-pwa-tutup class="pwa-tutup" aria-label="Kecilkan tombol install">&times;</button>'
   document.body.appendChild(el)
   return el
 }
@@ -26,11 +33,9 @@ function segarkan() {
   const buatan = document.querySelectorAll('[data-pwa-install]:not(.pwa-tombol)')
   const tampil = bisaTampil()
   buatan.forEach((b) => { b.hidden = !tampil })
-  let sembunyi = false
-  try { sembunyi = sessionStorage.getItem('pwa-tutup') === '1' } catch (e) { /* abaikan */ }
   const layang = document.getElementById('pwa-pasang')
   if (buatan.length) { if (layang) layang.hidden = true; return }
-  if (tampil && !sembunyi) tombolLayang().hidden = false
+  if (tampil) tombolLayang().hidden = false
   else if (layang) layang.hidden = true
 }
 
@@ -159,8 +164,9 @@ window.addEventListener('appinstalled', () => { tunda = null; segarkan() })
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-pwa-install]')) pasang()
   else if (e.target.closest('[data-pwa-tutup]')) {
-    try { sessionStorage.setItem('pwa-tutup', '1') } catch (err) { /* abaikan */ }
-    segarkan()
+    try { localStorage.setItem(KUNCI_KECIL, '1') } catch (err) { /* abaikan */ }
+    const l = document.getElementById('pwa-pasang')
+    if (l) l.classList.add('pwa-kecil')
   }
 })
 

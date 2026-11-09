@@ -445,3 +445,14 @@ love u ade sayangggkuu umachhh
 @media (prefers-reduced-motion: reduce) { .pwa-panah { animation: none; } }
 html.dark .pwa-bilah { background: #1f2a40; border-color: #2b3955; color: #94a3b8; }
 
+/* Tombol install dikecilkan jadi ikon bulat (tidak hilang). */
+#pwa-pasang.pwa-kecil .pwa-label,
+#pwa-pasang.pwa-kecil .pwa-tutup { display: none; }
+#pwa-pasang.pwa-kecil .pwa-tombol {
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border-radius: 9999px;
+}
+
