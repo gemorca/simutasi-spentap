@@ -11,6 +11,7 @@ export const NAMA_PERAN = {
 const DAFTAR_MENU = [
   { id: 'beranda',       label: 'Beranda',        peran: SEMUA,              tersedia: true, ikon: 'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10' },
   { id: 'kelas',         label: 'Kelas',          peran: ADMIN,              tersedia: true, ikon: 'M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2zM4 20a2 2 0 0 0 2 1h13' },
+  { id: 'tahunAjaran',   label: 'Tahun Ajaran',   peran: ADMIN,              tersedia: true, ikon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2' },
   { id: 'pengguna',      label: 'Pengguna',       peran: ADMIN,              tersedia: true, ikon: 'M16 20v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M20 20v-1a4 4 0 0 0-3-3.9' },
   { id: 'siswa',         label: 'Siswa',          peran: SEMUA,              tersedia: true, ikon: 'M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5' },
   { id: 'siswaMasuk',    label: 'Siswa Masuk',    peran: SEMUA,              tersedia: true, ikon: 'M4 12h12M12 7l5 5-5 5M20 4v16' },

@@ -7,7 +7,8 @@ export function hapusToken() { sessionStorage.removeItem('token') }
 const TIMEOUT_MS = 45000 // GAS yang baru "bangun" bisa lambat; lebih dari ini dianggap gagal
 const TTL_KELAS_MS = 60000
 
-// Aksi yang hanya membaca: aman diulang otomatis. Aksi lain (tulis) tidak pernah diulang.
+// Aksi yang hanya membaca: aman diulang otomatis bila jaringan gagal. Aksi lain (tulis) tidak pernah diulang.
+// Jawaban server dengan ok:false (SESI_HABIS, PERIODE_TUTUP, dll.) tidak pernah diulang.
 const AKSI_BACA = new Set([
   'me', 'kelasDaftar', 'siswaDaftar', 'mutasiDaftar', 'mutasiDetail', 'mutasiRiwayat',
   'dashboard', 'laporanRekap', 'logDaftar', 'pengaturanAmbil', 'penggunaDaftar', 'lampiranAmbil',
@@ -83,6 +84,11 @@ export async function panggilApi(aksi, data = {}, { saatProgres } = {}) {
     if (hasil.kode === 'SESI_HABIS') {
       hapusToken()
       window.dispatchEvent(new Event('sesi-habis'))
+    }
+    // Periode tutup (belum mulai, menunggu kenaikan kelas, atau berakhir). Jawaban server yang sah,
+    // BUKAN galat jaringan: tidak pernah diulang otomatis. app.js menampilkan layar kunci.
+    if (hasil.kode === 'PERIODE_TUTUP') {
+      window.dispatchEvent(new CustomEvent('periode-tutup', { detail: hasil.data }))
     }
     throw new Error(hasil.pesan)
   }

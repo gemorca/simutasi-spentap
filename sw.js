@@ -1,6 +1,6 @@
 // Service worker SIM Mutasi Siswa.
 // Naikkan VERSI setiap rilis besar agar cache lama dibuang.
-const VERSI = 'sim-mutasi-v5'
+const VERSI = 'sim-mutasi-v7'
 const INTI = [
   './',
   'index.html',
@@ -13,6 +13,9 @@ const INTI = [
 // Host luar yang aman di-cache (pustaka dan font). API Apps Script TIDAK pernah di-cache.
 const HOST_LUAR = ['cdn.tailwindcss.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net']
 const BATAS_JARINGAN_MS = 4000
+// API (Apps Script) tidak pernah lewat cache: status periode harus selalu segar dari server.
+const HOST_API = ['script.google.com', 'googleusercontent.com']
+const untukApi = (host) => HOST_API.some((h) => host === h || host.endsWith('.' + h))
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -31,6 +34,7 @@ self.addEventListener('activate', (e) => {
 })
 
 function simpan(req, res) {
+  if (untukApi(new URL(req.url).hostname)) return res
   if (res && (res.ok || res.type === 'opaque')) {
     const salinan = res.clone()
     caches.open(VERSI).then((c) => c.put(req, salinan)).catch(() => {})
@@ -71,6 +75,7 @@ self.addEventListener('fetch', (e) => {
   const req = e.request
   if (req.method !== 'GET') return
   const url = new URL(req.url)
+  if (untukApi(url.hostname)) return // langsung ke jaringan, tanpa cache
   if (url.origin === self.location.origin) {
     if (url.pathname.endsWith('/sw.js')) return
     e.respondWith(jaringanDulu(req))

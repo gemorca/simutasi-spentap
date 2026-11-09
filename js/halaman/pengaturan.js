@@ -10,9 +10,10 @@ const LABEL = {
   alamat_sekolah: 'Alamat sekolah',
   nama_kepala_sekolah: 'Nama Kepala Sekolah',
   nip_kepala_sekolah: 'NIP Kepala Sekolah',
-  tahun_ajaran_aktif: 'Tahun ajaran aktif (contoh 2026/2027)',
+  tahun_ajaran_aktif: 'Tahun ajaran aktif',
 }
-const KOLOM = Object.keys(LABEL)
+// tahun_ajaran_aktif baca-saja: diisi sistem dari halaman Tahun Ajaran, tidak ikut dikirim.
+const KOLOM = Object.keys(LABEL).filter((k) => k !== 'tahun_ajaran_aktif')
 const PENUH = ['nama_sekolah', 'alamat_sekolah']
 
 function htmlProfil(profil) {
@@ -22,7 +23,13 @@ function htmlProfil(profil) {
   })).join('')
   return `<h3 class="mb-4 text-lg font-bold text-slate-900">Profil Sekolah</h3>
     <form data-profil novalidate>
-      <div class="grid gap-5 sm:grid-cols-2">${kolom}</div>
+      <div class="grid gap-5 sm:grid-cols-2">${kolom}
+        ${medan({
+    label: LABEL.tahun_ajaran_aktif, nama: 'tahun_ajaran_aktif', nilai: profil.tahun_ajaran_aktif, nonaktif: true,
+    catatan: 'Diisi otomatis oleh sistem berdasarkan data Tahun Ajaran.',
+  })}
+        <div class="flex items-end pb-1"><a href="#/tahunAjaran" class="text-sm font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-800">Kelola Tahun Ajaran</a></div>
+      </div>
       <div class="mt-8 flex justify-end border-t border-slate-100 pt-5">
         <button type="submit" data-simpan class="${KELAS.utama}">Simpan Profil</button></div>
     </form>`
@@ -30,7 +37,7 @@ function htmlProfil(profil) {
 
 export function render(wadah) {
   wadah.innerHTML = `<div class="mx-auto max-w-4xl">
-    ${judulHalaman({ judul: 'Pengaturan Sistem', sub: 'Atur profil sekolah (tercetak di laporan).' })}
+    ${judulHalaman({ judul: 'Pengaturan Sistem', sub: 'Atur profil sekolah (tercetak di laporan). Tahun ajaran diatur di halaman Tahun Ajaran.' })}
     <div data-isi>${memuat('Memuat pengaturan...')}</div></div>`
   const isi = wadah.querySelector('[data-isi]')
 

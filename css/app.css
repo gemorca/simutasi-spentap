@@ -22,9 +22,68 @@
 @media print {
   @page { margin: 12mm; }
   body { background: #fff !important; font-size: 12px; color: #000 !important; }
-  #samping, #scrim, #lompat, #toast-wadah, #aplikasi header, [data-periode] form { display: none !important; }
+  #samping, #scrim, #lompat, #toast-wadah, #kunci, #aplikasi header, [data-periode] form { display: none !important; }
   #isi { padding: 0 !important; max-width: 100% !important; }
   table { page-break-inside: auto; width: 100% !important; }
   tr { page-break-inside: avoid; }
   thead { display: table-header-group; }
+}
+
+/* Layar kunci periode (js/app.js). Selalu gelap agar tidak bergantung pada tema. */
+body.kunci-buka { overflow: hidden; }
+#kunci {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  color: #e2e8f0;
+}
+#kunci.hidden { display: none; }
+.kunci-kartu {
+  width: 100%;
+  max-width: 26rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+}
+.kunci-ikon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 9999px;
+  background: rgb(245 158 11 / 0.15);
+  color: #fbbf24;
+}
+.kunci-judul { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.01em; color: #f8fafc; }
+.kunci-ta { margin-top: 0.5rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #94a3b8; }
+.kunci-ta[hidden] { display: none; }
+.kunci-pesan { margin-top: 0.75rem; font-size: 0.9375rem; line-height: 1.6; color: #cbd5e1; }
+.kunci-info { min-height: 1.25rem; margin-top: 1rem; font-size: 0.8125rem; font-weight: 600; color: #fbbf24; }
+.kunci-aksi { display: flex; flex-direction: column; gap: 0.625rem; margin-top: 1.25rem; }
+.kunci-tombol {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms, opacity 150ms;
+}
+.kunci-tombol:disabled { opacity: 0.6; cursor: not-allowed; }
+.kunci-tombol:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+.kunci-utama { background-color: #2563eb; color: #ffffff; }
+.kunci-utama:hover:not(:disabled) { background-color: #1d4ed8; }
+.kunci-sekunder { border: 1px solid rgb(148 163 184 / 0.4); background-color: transparent; color: #e2e8f0; }
+.kunci-sekunder:hover:not(:disabled) { background-color: rgb(255 255 255 / 0.08); }
+@media (min-width: 480px) {
+  .kunci-aksi { flex-direction: row-reverse; }
+  .kunci-tombol { flex: 1; }
 }

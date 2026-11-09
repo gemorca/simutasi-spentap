@@ -33,7 +33,7 @@ export function formPeriode(f, daftarTA = []) {
     <div class="flex flex-wrap items-center gap-3 flex-1">
       <select name="mode" aria-label="Jenis periode" class="${sel}">${opsi('tahun', 'Tahun ajaran', f.mode)}${opsi('semester', 'Semester', f.mode)}${opsi('bulan', 'Bulan', f.mode)}</select>
       ${f.mode !== 'bulan' ? `<select name="tahun_ajaran" aria-label="Tahun ajaran" class="${sel}">${daftarTA.map((t) => opsi(t, t, f.tahun_ajaran)).join('')}</select>` : ''}
-      ${f.mode === 'semester' ? `<select name="semester" aria-label="Semester" class="${sel}">${opsi('1', 'Semester 1 (Jul-Des)', f.semester)}${opsi('2', 'Semester 2 (Jan-Jun)', f.semester)}</select>` : ''}
+      ${f.mode === 'semester' ? `<select name="semester" aria-label="Semester" class="${sel}">${opsi('1', 'Semester 1 (Ganjil)', f.semester)}${opsi('2', 'Semester 2 (Genap)', f.semester)}</select>` : ''}
       ${f.mode === 'bulan' ? `<select name="bulanNo" aria-label="Bulan" class="${sel}">${NAMA_BULAN.map((b, i) => opsi(String(i + 1), b, f.bulanNo)).join('')}</select>
         <input name="tahunBulan" type="number" value="${esc(f.tahunBulan)}" aria-label="Tahun" class="${sel} w-28">` : ''}
     </div></form>`

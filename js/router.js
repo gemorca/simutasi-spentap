@@ -1,6 +1,7 @@
 export const HALAMAN = {
   beranda: () => import('./halaman/beranda.js'),
   kelas: () => import('./halaman/kelas.js'),
+  tahunAjaran: () => import('./halaman/tahunAjaran.js'),
   pengguna: () => import('./halaman/pengguna.js'),
   siswa: () => import('./halaman/siswa.js'),
   siswaMasuk: () => import('./halaman/mutasi.js'),

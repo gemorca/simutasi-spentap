@@ -11,12 +11,116 @@ const NAMA_SEKOLAH = ['SMP Negeri 1', 'Tapa']
 const JUDUL_APP = 'SIM Mutasi Siswa'
 const $ = (id) => document.getElementById(id)
 
+// Id halaman Tahun Ajaran di router.js/menu.js (Fase 3 bagian 3).
+const HALAMAN_TAHUN_AJARAN = 'tahunAjaran'
+
+const JUDUL_KUNCI = {
+  belum_mulai: 'Aplikasi belum aktif',
+  menunggu_kenaikan: 'Menunggu kenaikan kelas',
+  berakhir: 'Tahun ajaran telah berakhir',
+}
+const PESAN_KUNCI = 'Aplikasi sedang tidak dapat digunakan. Silakan hubungi Administrator.'
+
 let pengguna = null
 let urutan = 0
+let memeriksaKunci = false
+let pewaktuPeriode = null
+let versiPeriode = 0
+let memuatPeriode = false
+let hashAktif = ''
+
+// Pengingat global admin; tanggal dan isi pesan tetap ditentukan server (WITA).
+function tampilPengingat(periode) {
+  const banner = $('pengingat-periode')
+  const pesan = pengguna?.peran === 'admin' ? periode?.pengingat || [] : []
+  banner.hidden = !pesan.length
+  banner.innerHTML = pesan.length
+    ? `<div role="status"><ul class="list-disc pl-5 space-y-1">${pesan.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
+      <a href="#/tahunAjaran" class="mt-2 inline-block font-bold underline underline-offset-2">Kelola Tahun Ajaran</a></div>`
+    : ''
+}
+
+async function segarkanPeriode() {
+  if (pengguna?.peran !== 'admin' || document.hidden || memuatPeriode || document.documentElement.dataset.periodeMenulis === '1') return
+  const versi = versiPeriode
+  memuatPeriode = true
+  try {
+    const baru = await panggilApi('me')
+    if (versi !== versiPeriode || pengguna?.id !== baru.id) return
+    pengguna.periode = baru.periode
+    tampilPengingat(baru.periode)
+  } catch { /* API menangani sesi habis; pertahankan pengingat terakhir saat jaringan putus. */ }
+  finally { memuatPeriode = false }
+}
+
+/* Layar kunci periode: layar penuh untuk Petugas TU dan Kepala Sekolah saat periode tidak aktif.
+   Admin tidak pernah melihatnya. Isi pesan berasal dari server (periode.pesan). */
+function tampilKunci(periode) {
+  const p = periode || {}
+  hentikanNotifikasi()
+  bukaAkun(false)
+  bukaLaci(false)
+  $('kunci-judul').textContent = JUDUL_KUNCI[p.status] || 'Aplikasi sedang ditutup'
+  $('kunci-pesan').textContent = p.pesan || PESAN_KUNCI
+  $('kunci-ta').textContent = p.tahun_ajaran ? 'Tahun ajaran ' + p.tahun_ajaran : ''
+  $('kunci-ta').hidden = !p.tahun_ajaran
+  const baru = $('kunci').classList.contains('hidden')
+  $('kunci').classList.remove('hidden')
+  document.body.classList.add('kunci-buka')
+  $('aplikasi').inert = true
+  if (baru) $('kunci-ulang').focus()
+}
+
+function sembunyiKunci() {
+  $('kunci').classList.add('hidden')
+  document.body.classList.remove('kunci-buka')
+  $('aplikasi').inert = false
+  $('kunci-info').textContent = ''
+  $('kunci-ulang').disabled = false
+  $('kunci-ulang').textContent = 'Coba lagi'
+  $('kunci-keluar').disabled = false
+}
+
+function jamSekarang() {
+  return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+}
+
+// "Coba lagi": minta status terbaru lewat `me` (bebas gerbang periode). Aktif -> buka aplikasi.
+async function cobaLagiKunci() {
+  if (memeriksaKunci) return
+  memeriksaKunci = true
+  const tombol = $('kunci-ulang')
+  const info = $('kunci-info')
+  tombol.disabled = true
+  tombol.textContent = 'Memeriksa...'
+  info.textContent = ''
+  try {
+    const baru = await panggilApi('me')
+    pengguna = baru
+    if (baru.periode && baru.periode.aktif === false && baru.peran !== 'admin') {
+      tampilKunci(baru.periode)
+      info.textContent = 'Diperiksa pukul ' + jamSekarang() + '. Aplikasi masih ditutup.'
+    } else {
+      sembunyiKunci()
+      masuk()
+    }
+  } catch (err) {
+    info.textContent = err.message
+  } finally {
+    memeriksaKunci = false
+    tombol.disabled = false
+    tombol.textContent = 'Coba lagi'
+  }
+}
 
 function tampilLogin() {
   urutan++
   pengguna = null
+  versiPeriode++
+  clearInterval(pewaktuPeriode)
+  pewaktuPeriode = null
+  tampilPengingat(null)
+  sembunyiKunci()
   hentikanNotifikasi()
   lupakanFoto()
   document.body.classList.remove('laci-buka')
@@ -30,8 +134,20 @@ function tampilLogin() {
 function masuk() {
   $('layar').classList.add('hidden')
   $('layar').innerHTML = ''
+  // Dipanggil dari login dan `me`: keduanya membawa pengguna.periode.
+  const periode = pengguna.periode
+  if (periode && periode.aktif === false) {
+    // Selain Admin: kunci penuh, kerangka aplikasi tidak dibangun.
+    if (pengguna.peran !== 'admin') { tampilKunci(periode); return }
+    // Admin tidak pernah dikunci: cukup arahkan ke halaman Tahun Ajaran (replaceState: tanpa hashchange ganda).
+    history.replaceState(null, '', '#/' + HALAMAN_TAHUN_AJARAN)
+  }
   $('aplikasi').classList.remove('hidden')
   bangunKerangka()
+  versiPeriode++
+  tampilPengingat(periode)
+  clearInterval(pewaktuPeriode)
+  if (pengguna.peran === 'admin') pewaktuPeriode = setInterval(segarkanPeriode, 60000)
   mulaiNotifikasi(pengguna)
   tampilHalaman()
 }
@@ -93,6 +209,12 @@ function bukaLaci(buka) {
 
 async function tampilHalaman() {
   if (!pengguna) return
+  if (document.documentElement.dataset.periodeMenulis === '1') {
+    if (hashAktif) history.replaceState(null, '', hashAktif)
+    return
+  }
+  hashAktif = location.hash || '#/beranda'
+  segarkanPeriode()
   const menu = menuUntuk(pengguna.peran)
   const diminta = bacaHalaman()
   const id = HALAMAN_AKUN[diminta] || menu.some((m) => m.id === diminta && m.tersedia) ? diminta : 'beranda'
@@ -134,7 +256,16 @@ function placeholder(label, tahap) {
   </div>`
 }
 
+async function keluarSekarang() {
+  if (document.documentElement.dataset.periodeMenulis === '1') return
+  try { await panggilApi('logout') } catch { /* abaikan */ }
+  hapusToken()
+  pindah('beranda')
+  tampilLogin()
+}
+
 async function keluar() {
+  if (document.documentElement.dataset.periodeMenulis === '1') return
   const ya = await dialogKonfirmasi({
     judul: 'Keluar dari aplikasi?',
     pesan: 'Anda perlu masuk lagi untuk memakai SIM Mutasi Siswa.',
@@ -142,15 +273,22 @@ async function keluar() {
     tidak: 'Batal',
   })
   if (!ya) return
-  try { await panggilApi('logout') } catch { /* abaikan */ }
-  hapusToken()
-  pindah('beranda')
-  tampilLogin()
+  await keluarSekarang()
 }
 
 function pasangEvent() {
   saatBerubah(tampilHalaman)
   pasangPemilihTema()
+  window.addEventListener('periode-berubah', (e) => {
+    if (!pengguna) return
+    versiPeriode++
+    pengguna.periode = e.detail
+    tampilPengingat(e.detail)
+  })
+  window.addEventListener('periode-menulis', (e) => {
+    if (e.detail) versiPeriode++
+  })
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) segarkanPeriode() })
 
   $('menu').addEventListener('click', (e) => {
     const a = e.target.closest('a[data-id]')
@@ -187,6 +325,17 @@ function pasangEvent() {
   $('lompat').addEventListener('click', (e) => { e.preventDefault(); $('isi').focus() })
 
   window.addEventListener('sesi-habis', () => { pindah('beranda'); tampilLogin() })
+
+  // Server menjawab PERIODE_TUTUP (dikirim api.js). Admin tidak pernah kena; abaikan bila belum/tidak login.
+  window.addEventListener('periode-tutup', (e) => {
+    if (!pengguna || pengguna.peran === 'admin') return
+    tampilKunci(e.detail)
+  })
+  $('kunci-ulang').addEventListener('click', cobaLagiKunci)
+  $('kunci-keluar').addEventListener('click', () => {
+    $('kunci-keluar').disabled = true
+    keluarSekarang()
+  })
 }
 
 async function mulai() {
