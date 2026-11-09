@@ -1,4 +1,5 @@
 // Satu-satunya tempat yang berbicara dengan backend GAS.
+import { urutKelas } from './urutKelas.js'
 export function ambilToken() { return sessionStorage.getItem('token') }
 export function simpanToken(token) { sessionStorage.setItem('token', token) }
 export function hapusToken() { sessionStorage.removeItem('token') }
@@ -85,6 +86,8 @@ export async function panggilApi(aksi, data = {}, { saatProgres } = {}) {
     }
     throw new Error(hasil.pesan)
   }
+  // Semua dropdown kelas (filter, form, impor, laporan) memakai urutan yang sama: VII, VIII, IX.
+  if (aksi === 'kelasDaftar' && Array.isArray(hasil.data)) hasil.data = [...hasil.data].sort(urutKelas)
   if (!baca) cacheKelas = null
   if (bisaCache) cacheKelas = { waktu: Date.now(), isi: JSON.stringify(hasil.data) }
   return hasil.data
