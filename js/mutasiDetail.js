@@ -15,6 +15,7 @@ const NAMA_AKSI = {
   MUTASI_BATAL_SETUJU: 'Persetujuan dibatalkan',
   MUTASI_NOMOR_SURAT: 'Nomor surat diubah',
   MUTASI_SURAT_TERBIT: 'Surat diterbitkan',
+  MUTASI_ARSIP_IMPOR: 'Diimpor sebagai arsip',
   LAMPIRAN_UNGGAH: 'Lampiran diunggah',
   LAMPIRAN_HAPUS: 'Lampiran dihapus',
 }
@@ -123,6 +124,9 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     } else if (m.status === 'Diajukan') {
       judul = 'Menunggu keputusan Kepala Sekolah'
       if (m.diajukan_oleh) baris += `<p class="mt-1">Diajukan oleh ${esc(m.diajukan_oleh)} (${esc(m.tanggal_diajukan)})</p>`
+    } else if (m.status === 'Disetujui' && m.sumber === 'arsip') {
+      judul = 'Data arsip (diimpor Admin)' + (m.tanggal_persetujuan ? ' (' + m.tanggal_persetujuan + ')' : '')
+      baris += '<p class="mt-1">Dicatat dari data manual lama. Tanpa lampiran dan tanpa surat keterangan di sistem.</p>'
     } else if (m.status === 'Disetujui') {
       judul = 'Disetujui' + oleh + tgl
       baris += m.nomor_surat
@@ -167,6 +171,14 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   }
 
   function kartuHeader(m) {
+    if (m.sumber === 'arsip') {
+      return `<section aria-label="Ringkasan siswa" class="mb-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+          <div><dt class="text-xs font-semibold text-slate-400">NISN/NIS</dt><dd class="font-semibold text-slate-800">${esc(m.nisn_nis || '-')}</dd></div>
+          <div><dt class="text-xs font-semibold text-slate-400">Kelas tujuan</dt><dd class="font-semibold text-slate-800">${esc(m.nama_kelas || '-')}</dd></div>
+          <div><dt class="text-xs font-semibold text-slate-400">Tanggal masuk</dt><dd class="font-semibold text-slate-800">${esc(m.tanggal || '-')}</dd></div>
+        </dl></section>`
+    }
     const { lampiran, wajib } = detail
     const ada = (jd) => lampiran.some((l) => l.jenis_dokumen === jd)
     const lengkap = wajib.filter(ada).length
@@ -222,6 +234,9 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   }
 
   function panelLampiran(bisaUbah) {
+    if (detail.mutasi.sumber === 'arsip') {
+      return `<div role="tabpanel" id="panel-lampiran" aria-labelledby="tab-lampiran"><p class="text-sm font-medium text-slate-500">Mutasi arsip tidak memakai lampiran. Dokumen asli tersimpan di berkas kertas sekolah.</p></div>`
+    }
     const { lampiran, wajib, maks_mb: maksMb } = detail
     const lengkap = wajib.filter((jd) => lampiran.some((l) => l.jenis_dokumen === jd)).length
     const daftar = wajib.concat(['Lainnya']).map((jd) => {
@@ -264,10 +279,11 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   function gambar() {
     const { mutasi: m, lampiran, wajib, peringatan } = detail
     const bisaUbah = !hanyaBaca && (m.status === 'Draft' || m.status === 'Ditolak')
-    const bisaHapus = !hanyaBaca && bisaHapusMutasi && m.status !== 'Disetujui' // hapus: Admin saja (sama dengan backend)
+    const arsip = m.sumber === 'arsip'
+    const bisaHapus = !hanyaBaca && bisaHapusMutasi && (m.status !== 'Disetujui' || arsip) // hapus: Admin saja (sama dengan backend)
     const tampilPutusan = bisaPutuskan && m.status === 'Diajukan'
-    const tampilBatal = bisaBatalkan && m.status === 'Disetujui'
-    const tampilSurat = m.status === 'Disetujui'
+    const tampilBatal = bisaBatalkan && m.status === 'Disetujui' && !arsip
+    const tampilSurat = m.status === 'Disetujui' && !arsip
     const bisaNomor = tampilSurat && bisaUbahNomor && !m.tanggal_terbit && Boolean(m.nomor_surat)
     const lengkap = wajib.filter((jd) => lampiran.some((l) => l.jenis_dokumen === jd)).length
 
@@ -285,7 +301,9 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
 
     const tabs = [
       { id: 'data', label: 'Data Siswa' },
-      { id: 'lampiran', label: 'Lampiran Berkas', badge: lengkap + '/' + wajib.length, kurang: lengkap < wajib.length },
+      arsip
+        ? { id: 'lampiran', label: 'Lampiran Berkas' }
+        : { id: 'lampiran', label: 'Lampiran Berkas', badge: lengkap + '/' + wajib.length, kurang: lengkap < wajib.length },
       { id: 'riwayat', label: 'Riwayat Log', badge: String(riwayat.length) },
     ]
     const barTab = `<div role="tablist" aria-label="Bagian detail" class="mut-tabs mb-6 flex gap-2 overflow-x-auto border-b border-slate-200">${tabs.map((t) =>
@@ -503,7 +521,9 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
   async function hapusMutasi() {
     const ya = await dialogKonfirmasi({
       judul: 'Hapus permanen?',
-      pesan: 'Mutasi ini beserta lampirannya akan dihapus permanen. Data tidak dapat dikembalikan.',
+      pesan: detail.mutasi.sumber === 'arsip'
+        ? 'Mutasi arsip ini akan dihapus permanen dari laporan masuk. Data siswa di menu Siswa tidak ikut terhapus.'
+        : 'Mutasi ini beserta lampirannya akan dihapus permanen. Data tidak dapat dikembalikan.',
       ya: 'Hapus permanen',
       bahaya: true,
     })

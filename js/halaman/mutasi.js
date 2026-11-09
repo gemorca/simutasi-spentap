@@ -3,6 +3,7 @@ import { esc, KELAS, IKON, memuat, judulHalaman, lencana, tabel, galatMuat, pasa
 import { formFilterMutasi, pasangFilter, opsiKelas } from '../mutasiFilter.js'
 import { renderForm } from '../mutasiForm.js'
 import { renderDetail, pulihkanTerbuka, hapusTerbuka } from '../mutasiDetail.js'
+import { bukaImporMutasiArsip } from '../imporMutasiArsip.js'
 
 const OPSI_STATUS = [
   { nilai: '', label: 'Semua status' },
@@ -49,11 +50,11 @@ export function render(wadah, pengguna) {
     akar.querySelector('[data-isi]').innerHTML = `<p class="mb-3 text-sm font-semibold text-slate-500">Total Data: <strong class="text-slate-900">${esc(hasil.total)}</strong>${hasil.dipotong ? ' (ditampilkan 300 pertama)' : ''}</p>`
       + tabel({
         kolom: [
-          { judul: 'Nama Siswa', isi: 'kiri', html: (m) => `<strong class="text-slate-900 font-bold">${esc(m.nama_siswa)}</strong>` },
+          { judul: 'Nama Siswa', isi: 'kiri', html: (m) => `<strong class="text-slate-900 font-bold">${esc(m.nama_siswa)}</strong>${m.sumber === 'arsip' ? ' <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-500">Arsip</span>' : ''}` },
           { judul: 'Kelas', nilai: (m) => m.nama_kelas },
           { judul: 'Tanggal Masuk', nilai: (m) => m.tanggal },
           { judul: 'Sekolah Asal', isi: 'kiri', nilai: (m) => m.sekolah },
-          { judul: 'Lampiran', rata: 'angka', nilai: (m) => m.jumlah_lampiran },
+          { judul: 'Lampiran', rata: 'angka', nilai: (m) => (m.sumber === 'arsip' ? '-' : m.jumlah_lampiran) },
           { judul: 'Status', di: 'tanda', html: (m) => lencana(m.status) },
           { judul: 'Aksi', rata: 'tengah', di: 'aksi', html: (m) => `<button type="button" data-aksi="buka" data-id="${esc(m.id)}" class="${KELAS.tombol} ${KELAS.kecil}">Buka Detail</button>` },
         ],
@@ -89,10 +90,14 @@ export function render(wadah, pengguna) {
       sub: bisaTulis
         ? 'Catat siswa pindahan, lengkapi dokumen, lalu ajukan ke Kepala Sekolah.'
         : 'Pantau data siswa masuk. Keputusan persetujuan ada di menu Persetujuan.',
-      aksi: bisaTulis ? `<button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Siswa Masuk</button>` : '',
+      aksi: (admin ? `<button type="button" data-aksi="impor-arsip" class="${KELAS.tombol}">Impor Arsip</button>` : '')
+        + (bisaTulis ? `<button type="button" data-aksi="tambah" class="${KELAS.utama}">Tambah Siswa Masuk</button>` : ''),
     }) + formFilterMutasi(filter, kelas, OPSI_STATUS) + '<div data-isi></div>'
     pasangAksi(akar, {
       tambah: () => { if (bisaTulis) bukaForm('') },
+      'impor-arsip': () => {
+        if (admin) bukaImporMutasiArsip({ onSelesai: () => { if (akar.isConnected) muatIsi(akar) } })
+      },
       buka: (id) => bukaDetail(id),
       'muat-ulang': () => muatIsi(akar),
     })
