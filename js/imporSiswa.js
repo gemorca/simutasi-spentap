@@ -83,8 +83,7 @@ async function bacaBerkas(file) {
 
 export function bukaImporSiswa({ onSelesai } = {}) {
   const d = document.createElement('dialog')
-  d.className = 'dlg rounded-2xl border border-slate-200 p-0 backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm shadow-2xl'
-  d.style.width = 'min(94vw, 44rem)'
+  d.className = 'dlg dlg-impor rounded-2xl border border-slate-200 p-0 backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm shadow-2xl'
   document.body.appendChild(d)
 
   let status = 'pilih' // pilih | memeriksa | pratinjau | proses | selesai
@@ -111,11 +110,11 @@ export function bukaImporSiswa({ onSelesai } = {}) {
       <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <p class="text-sm font-bold text-slate-900">Langkah 1. Unduh template</p>
         <p class="mt-1 text-sm text-slate-600">Isi data siswa memakai template agar kolom sesuai.</p>
-        <button type="button" data-aksi="template" class="${KELAS.tombol} ${KELAS.kecil} mt-3">Unduh Template Excel</button></div>
+        <button type="button" data-aksi="template" class="${KELAS.tombol} ${KELAS.kecil} impor-template-btn mt-3">Unduh Template Excel</button></div>
       <div>
         <p class="mb-2 text-sm font-bold text-slate-900">Langkah 2. Pilih file terisi</p>
-        <label data-zona class="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-slate-300 bg-white px-4 py-8 text-center transition-colors focus-within:border-blue-600">
-          <span class="text-sm font-bold text-slate-800">Tarik file ke sini atau klik untuk memilih</span>
+        <label data-zona class="impor-zona flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-slate-300 bg-white px-4 py-8 text-center transition-colors focus-within:border-blue-600">
+          <span class="text-sm font-bold text-slate-800"><span class="impor-teks-desk">Tarik file ke sini atau klik untuk memilih</span><span class="impor-teks-hp">Ketuk untuk memilih file</span></span>
           <span class="text-xs font-medium text-slate-500">Format .xlsx, .xls, atau .csv. Maksimal 5 MB.</span>
           <input type="file" data-berkas accept=".xlsx,.xls,.csv" class="sr-only"></label></div>
       ${galat ? `<p role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-900">${esc(galat)}</p>` : ''}
@@ -168,8 +167,8 @@ export function bukaImporSiswa({ onSelesai } = {}) {
       isi = htmlSelesai()
       aksi = tutup
     }
-    d.innerHTML = `<div class="p-6"><h2 class="text-xl font-bold tracking-tight text-slate-900">${esc(judul)}</h2>${isi}
-      <div class="mt-6 flex flex-wrap justify-end gap-3">${aksi}</div></div>`
+    d.innerHTML = `<div class="impor-isi"><h2 class="text-xl font-bold tracking-tight text-slate-900">${esc(judul)}</h2>${isi}
+      <div class="dlg-aksi impor-aksi mt-6 flex flex-wrap justify-end gap-3">${aksi}</div></div>`
   }
 
   async function periksaFile(file) {
