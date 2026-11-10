@@ -8,8 +8,27 @@ import { periksa, wajib } from '../validasi.js'
 import { bukaImporSiswa } from '../imporSiswa.js'
 
 const IK_ORANG = 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'
+const IK_LIHAT = 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'
 const SATUAN = 'siswa'
-const KOLOM_FORM = ['nisn_nis', 'nama', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'kelas_id']
+const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+
+// Tanggal 'yyyy-MM-dd' (atau 'yyyy-MM-dd HH:mm:ss') jadi '10 November 2026'. Format tak dikenal ditampilkan apa adanya.
+function tanggalLengkap(t) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(t || ''))
+  if (!m || Number(m[2]) < 1 || Number(m[2]) > 12) return String(t || '').trim()
+  return `${m[3]} ${BULAN[Number(m[2]) - 1]} ${m[1]}`
+}
+
+const butirBio = (label, nilai, { penuh = false, lipat = false } = {}) =>
+  `<div class="grid content-start gap-1${penuh ? ' sm:col-span-2' : ''}">
+    <dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">${esc(label)}</dt>
+    <dd class="text-sm font-semibold text-slate-900${lipat ? ' whitespace-pre-line break-words' : ''}">${esc(String(nilai || '').trim() || '-')}</dd></div>`
+
+const bagianBio = (judul, isi) =>
+  `<section class="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+    <h3 class="mb-5 text-base font-bold text-slate-900">${esc(judul)}</h3>
+    <dl class="grid gap-x-8 gap-y-5 sm:grid-cols-2">${isi}</dl></section>`
+const KOLOM_FORM = ['nisn_nis', 'nama', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'kelas_id', 'alamat', 'nama_ayah', 'nama_ibu']
 const ATURAN = {
   nama: [wajib('Nama lengkap wajib diisi')],
   jenis_kelamin: [wajib('Pilih jenis kelamin')],
@@ -68,9 +87,12 @@ export function render(wadah, pengguna) {
           { judul: 'Status', rata: 'tengah', html: (s) => lencana(s.status) },
         ],
         baris: hasil.daftar,
-        aksi: hanyaBaca ? null : () => [
-          { aksi: 'ubah', label: 'Ubah', d: IKON.ubah },
-          { aksi: 'hapus', label: 'Hapus', d: IKON.hapus, bahaya: true },
+        aksi: () => [
+          { aksi: 'detail', label: 'Lihat detail', d: IK_LIHAT },
+          ...(hanyaBaca ? [] : [
+            { aksi: 'ubah', label: 'Ubah', d: IKON.ubah },
+            { aksi: 'hapus', label: 'Hapus', d: IKON.hapus, bahaya: true },
+          ]),
         ],
         pilih: hanyaBaca ? null : {
           aktif: pilihan.aktif,
@@ -204,7 +226,21 @@ export function render(wadah, pengguna) {
       if (!bisaTambah) return
       bukaImporSiswa({ onSelesai: () => { if (wadah.isConnected) tampilDaftar(true) } })
     },
-    ubah: (id) => { const s = cari(id); if (s) tampilForm(s) },
+    // Daftar hanya berisi kolom ringkas. Ambil biodata lengkap dulu supaya form tidak kosong
+    // dan simpan tidak menimpa alamat/orang tua dengan teks kosong.
+    detail: (id) => { const s = cari(id); if (s) tampilDetail(s) },
+    ubah: async (id) => {
+      const s = cari(id)
+      if (!s || !admin) return
+      const saat = layar
+      try {
+        const detail = await panggilApi('siswaDetail', { id: s.id })
+        if (saat !== layar || !wadah.isConnected) return
+        tampilForm({ ...s, ...detail })
+      } catch (err) {
+        if (saat === layar && wadah.isConnected) tampilPesan({ jenis: 'galat', teks: err.message })
+      }
+    },
     hapus: (id) => hapus(cari(id)),
     'mulai-pilih': () => { pilihan.mulai(); gambarIsi() },
     'selesai-pilih': () => { pilihan.selesai(); gambarIsi() },
@@ -212,6 +248,54 @@ export function render(wadah, pengguna) {
     pilih: (id) => { pilihan.balik(id); gambarIsi() },
     'hapus-terpilih': hapusTerpilih,
     'muat-ulang': () => tampilDaftar(true),
+  }
+
+  async function tampilDetail(s) {
+    const id = ++layar
+    pilihan.selesai()
+    sibuk = false
+    const judulDetail = (aksiTambahan = '') => judulHalaman({
+      judul: 'Biodata Siswa',
+      sub: s.nama,
+      aksi: aksiTambahan + `<button type="button" data-aksi="kembali" class="${KELAS.tombol}">Kembali</button>`,
+    })
+    wadah.innerHTML = judulDetail() + memuat()
+    window.scrollTo(0, 0)
+    pasangAksi(wadah, { kembali: () => tampilDaftar(false) })
+
+    let d
+    try {
+      d = await panggilApi('siswaDetail', { id: s.id })
+    } catch (err) {
+      if (id !== layar || !wadah.isConnected) return
+      wadah.innerHTML = judulDetail() + galatMuat(err.message)
+      return
+    }
+    if (id !== layar || !wadah.isConnected) return
+
+    const kelasTeks = d.nama_kelas ? d.nama_kelas + (d.tahun_ajaran ? ' - ' + d.tahun_ajaran : '') : ''
+    const ttl = [d.tempat_lahir, tanggalLengkap(d.tanggal_lahir)].filter(Boolean).join(', ')
+    wadah.innerHTML = judulDetail(admin
+      ? `<button type="button" data-aksi="ubah-detail" class="${KELAS.utama}">Ubah</button>` : '')
+      + `<div class="grid gap-6">`
+      + bagianBio('Data Pribadi',
+        butirBio('Nama lengkap', d.nama)
+        + butirBio('NISN / NIS', d.nisn_nis)
+        + butirBio('Jenis kelamin', namaJenisKelamin(d.jenis_kelamin))
+        + butirBio('Tempat, tanggal lahir', ttl))
+      + bagianBio('Data Sekolah',
+        butirBio('Kelas', kelasTeks)
+        + `<div class="grid content-start gap-1"><dt class="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</dt><dd>${lencana(d.status)}</dd></div>`
+        + butirBio('Terdaftar pada', tanggalLengkap(d.dibuat_pada)))
+      + bagianBio('Alamat dan Orang Tua',
+        butirBio('Alamat', d.alamat, { penuh: true, lipat: true })
+        + butirBio('Nama ayah', d.nama_ayah)
+        + butirBio('Nama ibu', d.nama_ibu))
+      + `</div>`
+    pasangAksi(wadah, {
+      kembali: () => tampilDaftar(false),
+      'ubah-detail': () => tampilForm(d),
+    })
   }
 
   function tampilForm(s) {
@@ -222,8 +306,12 @@ export function render(wadah, pengguna) {
       ? {
         nisn_nis: s.nisn_nis || '', nama: s.nama, jenis_kelamin: s.jenis_kelamin,
         tempat_lahir: s.tempat_lahir || '', tanggal_lahir: s.tanggal_lahir || '', kelas_id: s.kelas_id,
+        alamat: s.alamat || '', nama_ayah: s.nama_ayah || '', nama_ibu: s.nama_ibu || '',
       }
-      : { nisn_nis: '', nama: '', jenis_kelamin: '', tempat_lahir: '', tanggal_lahir: '', kelas_id: '' }
+      : {
+        nisn_nis: '', nama: '', jenis_kelamin: '', tempat_lahir: '', tanggal_lahir: '', kelas_id: '',
+        alamat: '', nama_ayah: '', nama_ibu: '',
+      }
 
     wadah.innerHTML = judulHalaman({
       judul: ubah ? 'Ubah Data Siswa' : 'Tambah Siswa Aktif Baru',
@@ -243,6 +331,9 @@ export function render(wadah, pengguna) {
         })}
         ${medan({ label: 'Tempat lahir', nama: 'tempat_lahir', nilai: n.tempat_lahir, placeholder: 'Contoh: Manado', atribut: { autocomplete: 'off' } })}
         ${medan({ label: 'Tanggal lahir', nama: 'tanggal_lahir', nilai: n.tanggal_lahir, tipe: 'date' })}
+        ${medan({ label: 'Alamat', nama: 'alamat', nilai: n.alamat, tipe: 'textarea', baris: 3, penuh: true, catatan: 'Boleh dikosongkan. Maksimal 300 karakter.', placeholder: 'Alamat lengkap siswa', atribut: { maxlength: 300 } })}
+        ${medan({ label: 'Nama ayah', nama: 'nama_ayah', nilai: n.nama_ayah, placeholder: 'Nama lengkap ayah', atribut: { maxlength: 100, autocomplete: 'off' } })}
+        ${medan({ label: 'Nama ibu', nama: 'nama_ibu', nilai: n.nama_ibu, placeholder: 'Nama lengkap ibu', atribut: { maxlength: 100, autocomplete: 'off' } })}
       </div>${barSimpan()}</form>`
     window.scrollTo(0, 0)
     pasangAksi(wadah, { kembali: () => tampilDaftar(false) })

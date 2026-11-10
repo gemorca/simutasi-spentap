@@ -1,6 +1,6 @@
 // Service worker SIM Mutasi Siswa.
 // Naikkan VERSI setiap rilis besar agar cache lama dibuang.
-const VERSI = 'sim-mutasi-v7'
+const VERSI = 'sim-mutasi-v8'
 const INTI = [
   './',
   'index.html',

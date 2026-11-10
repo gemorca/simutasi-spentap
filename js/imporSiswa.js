@@ -15,6 +15,9 @@ const KOLOM = [
   { kunci: 'tanggal_lahir', judul: 'Tanggal Lahir', alias: ['tanggallahir', 'tgllahir'] },
   { kunci: 'nama_kelas', judul: 'Kelas', alias: ['kelas', 'namakelas'] },
   { kunci: 'tahun_ajaran', judul: 'Tahun Ajaran', alias: ['tahunajaran', 'ta'] },
+  { kunci: 'alamat', judul: 'Alamat', alias: ['alamat', 'alamatsiswa'] },
+  { kunci: 'nama_ayah', judul: 'Nama Ayah', alias: ['namaayah', 'ayah', 'namabapak', 'bapak'] },
+  { kunci: 'nama_ibu', judul: 'Nama Ibu', alias: ['namaibu', 'ibu'] },
 ]
 const WAJIB = ['nama', 'jenis_kelamin', 'nama_kelas']
 
@@ -27,10 +30,10 @@ async function unduhTemplate() {
       nama: 'Siswa',
       baris: [
         KOLOM.map((k) => k.judul),
-        ['0012345678', 'Contoh Siswa Satu', 'L', 'Manado', '2013-05-21', '7A', '2026/2027'],
-        ['', 'Contoh Siswa Dua', 'P', 'Bitung', '2013-08-02', '7A', ''],
+        ['0012345678', 'Contoh Siswa Satu', 'L', 'Manado', '2013-05-21', '7A', '2026/2027', 'Jl. Contoh No. 1, Manado', 'Contoh Ayah Satu', 'Contoh Ibu Satu'],
+        ['', 'Contoh Siswa Dua', 'P', 'Bitung', '2013-08-02', '7A', '', '', '', ''],
       ],
-      lebar: [14, 28, 14, 18, 14, 10, 14],
+      lebar: [14, 28, 14, 18, 14, 10, 14, 36, 24, 24],
     },
     {
       nama: 'Petunjuk',
@@ -42,7 +45,8 @@ async function unduhTemplate() {
         ['4. Tahun Ajaran boleh kosong. Jika kosong, dipakai tahun ajaran aktif.'],
         ['5. Tanggal Lahir ditulis yyyy-mm-dd, misalnya 2013-05-21. Boleh kosong.'],
         ['6. NISN/NIS boleh kosong. Format kolom sebagai Teks agar angka 0 di depan tidak hilang.'],
-        ['7. Maksimal ' + MAKS_BARIS + ' baris per impor. Baris yang salah dilewati, sisanya tetap diimpor.'],
+        ['7. Alamat, Nama Ayah, dan Nama Ibu boleh kosong. Batas: Alamat 300 karakter, Nama Ayah dan Nama Ibu masing-masing 100 karakter.'],
+        ['8. Maksimal ' + MAKS_BARIS + ' baris per impor. Baris yang salah dilewati, sisanya tetap diimpor.'],
       ],
       lebar: [90],
     },

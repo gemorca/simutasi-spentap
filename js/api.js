@@ -10,7 +10,7 @@ const TTL_KELAS_MS = 60000
 // Aksi yang hanya membaca: aman diulang otomatis bila jaringan gagal. Aksi lain (tulis) tidak pernah diulang.
 // Jawaban server dengan ok:false (SESI_HABIS, PERIODE_TUTUP, dll.) tidak pernah diulang.
 const AKSI_BACA = new Set([
-  'me', 'kelasDaftar', 'siswaDaftar', 'mutasiDaftar', 'mutasiDetail', 'mutasiRiwayat',
+  'me', 'kelasDaftar', 'siswaDaftar', 'siswaDetail', 'mutasiDaftar', 'mutasiDetail', 'mutasiRiwayat',
   'dashboard', 'laporanRekap', 'logDaftar', 'pengaturanAmbil', 'penggunaDaftar', 'lampiranAmbil',
   'profilFotoAmbil',
 ])
