@@ -203,16 +203,16 @@ function gambarLogo(doc, logo, x, y) {
   doc.addImage(logo.data, 'PNG', x + (PDF_LOGO_KOTAK - w) / 2, y + (PDF_LOGO_KOTAK - h) / 2, w, h)
 }
 
-/* Kop surat: logo sekolah di kiri, logo Bonbol di kanan, teks di tengah. */
-function gambarKop(doc, sekolah, logoKiri, logoKanan) {
+/* Kop surat: logo Bonbol di kiri, logo sekolah di kanan, teks di tengah. */
+function gambarKop(doc, sekolah, logoSekolah, logoBonbol) {
   const { lebar } = halaman(doc)
   const xTeks = PDF_MARGIN + PDF_LOGO_KOTAK + 4
   const lebarTeks = lebar - 2 * xTeks
   const pusat = lebar / 2
   let y = PDF_MARGIN
 
-  gambarLogo(doc, logoKiri, PDF_MARGIN, y)
-  gambarLogo(doc, logoKanan, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
+  gambarLogo(doc, logoBonbol, PDF_MARGIN, y)
+  gambarLogo(doc, logoSekolah, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
 
   doc.setTextColor(...PDF_WARNA.navy)
   doc.setFont(PDF_FONT, 'bold')
@@ -400,7 +400,7 @@ export async function unduhPdfRekap(lap) {
 
   const kepalaDaftar = ['No', 'Nama Siswa', 'NISN/NIS', 'JK', 'Kelas', 'Tanggal Masuk', 'Sekolah Asal', 'Alasan']
 
-  const [jsPDF, logoKiri, logoKanan] = await Promise.all([
+  const [jsPDF, logoSekolah, logoBonbol] = await Promise.all([
     muatJspdf(),
     muatGambar(LOGO_SEKOLAH),
     muatGambar(LOGO_BONBOL),
@@ -409,7 +409,7 @@ export async function unduhPdfRekap(lap) {
   const doc = new jsPDF({ orientation: orientasiOtomatis(kepalaDaftar.length), unit: 'mm', format: 'a4' })
   doc.setProperties({ title: 'Rekapitulasi Mutasi Siswa Masuk ' + bersihkan(periode.label) })
 
-  let y = gambarKop(doc, sekolah, logoKiri, logoKanan)
+  let y = gambarKop(doc, sekolah, logoSekolah, logoBonbol)
   y = gambarJudul(doc, y, 'Rekapitulasi Mutasi Siswa Masuk')
   y = gambarKeterangan(doc, y, [
     ['Periode', `<b>${aman(periode.label)}</b>`],
@@ -483,7 +483,7 @@ export async function unduhPdfSurat(data) {
   const jk = String(siswa.jenis_kelamin).toUpperCase() === 'L' ? 'Laki-laki'
     : String(siswa.jenis_kelamin).toUpperCase() === 'P' ? 'Perempuan' : bersihkan(siswa.jenis_kelamin)
 
-  const [jsPDF, logoKiri, logoKanan] = await Promise.all([
+  const [jsPDF, logoSekolah, logoBonbol] = await Promise.all([
     muatJspdf(),
     muatGambar(LOGO_SEKOLAH),
     muatGambar(LOGO_BONBOL),
@@ -493,7 +493,7 @@ export async function unduhPdfSurat(data) {
   const { lebar } = halaman(doc)
   const area = lebar - 2 * PDF_MARGIN
 
-  let y = gambarKop(doc, sekolah, logoKiri, logoKanan)
+  let y = gambarKop(doc, sekolah, logoSekolah, logoBonbol)
   y = gambarJudul(doc, y + 2, 'Surat Keterangan')
   doc.setFont(PDF_FONT, 'normal')
   doc.setFontSize(PDF_UKURAN.isi)
