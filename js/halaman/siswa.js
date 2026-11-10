@@ -12,7 +12,6 @@ const IK_LIHAT = 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12ZM12 15a3 3 0 1
 const SATUAN = 'siswa'
 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
-// Tanggal 'yyyy-MM-dd' (atau 'yyyy-MM-dd HH:mm:ss') jadi '10 November 2026'. Format tak dikenal ditampilkan apa adanya.
 function tanggalLengkap(t) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(t || ''))
   if (!m || Number(m[2]) < 1 || Number(m[2]) > 12) return String(t || '').trim()
@@ -38,7 +37,6 @@ const ATURAN = {
 export function render(wadah, pengguna) {
   const admin = pengguna.peran === 'admin'
   const bisaTambah = admin || pengguna.peran === 'petugas_tu'
-  // Ubah, hapus, dan pilih massal hanya untuk Administrator. Petugas TU: tambah dan impor saja.
   const hanyaBaca = !admin
   let hasil = { total: 0, dipotong: false, daftar: [] }
   let kelas = []
@@ -161,7 +159,6 @@ export function render(wadah, pengguna) {
     wadah.innerHTML = judul(true) + formFilter() + '<div data-isi></div>'
     const form = wadah.querySelector('[data-filter]')
     const baca = () => { filter = { q: form.elements.q.value, kelas_id: form.elements.kelas_id.value } }
-    // Pencarian otomatis (AJAX): teks setelah berhenti mengetik, pilihan kelas langsung.
     let terakhir = JSON.stringify(filter)
     const terapkan = () => {
       baca()
@@ -226,8 +223,6 @@ export function render(wadah, pengguna) {
       if (!bisaTambah) return
       bukaImporSiswa({ onSelesai: () => { if (wadah.isConnected) tampilDaftar(true) } })
     },
-    // Daftar hanya berisi kolom ringkas. Ambil biodata lengkap dulu supaya form tidak kosong
-    // dan simpan tidak menimpa alamat/orang tua dengan teks kosong.
     detail: (id) => { const s = cari(id); if (s) tampilDetail(s) },
     ubah: async (id) => {
       const s = cari(id)

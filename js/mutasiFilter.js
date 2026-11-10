@@ -22,7 +22,6 @@ export function formFilterMutasi(filter, kelas, opsiStatus, denganTanggal = true
       <input name="sampai" type="date" value="${esc(filter.sampai)}" class="${isi}"></label>` : ''}</form>`
 }
 
-/* Filter berjalan otomatis (AJAX): teks dicari setelah berhenti mengetik, pilihan langsung diterapkan. */
 export function pasangFilter(form, filter, onCari) {
   const baca = () => { for (const n of Object.keys(filter)) if (form.elements[n]) filter[n] = form.elements[n].value }
   let terakhir = JSON.stringify(filter)

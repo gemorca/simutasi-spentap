@@ -1,10 +1,3 @@
-/* Sapaan menurut jam, beragam, dipilih acak sekali per sesi per slot jam.
- * Memakai jam perangkat, jadi otomatis sesuai zona waktu pengguna (WIB, WITA, WIT).
- * Teks dikembalikan tanpa tanda baca. Pemanggil menambahkan koma dan nama:
- *   sapaanWaktu() + ', ' + nama   ->   "Pagi yang cerah, Budi"
- *
- * Slot: 00-03 dini, 04-05 subuh, 06-10 pagi, 11-14 siang, 15-17 sore, 18-20 malam, 21-23 larut.
- * Entri berupa string, atau { teks, bila(tanggal) } bila hanya boleh tampil pada kondisi tertentu. */
 
 const SLOT = [
   { nama: 'dini', dari: 0, sapaan: ['Begadang ya', 'Masih terjaga', 'Larut malam'] },
@@ -21,7 +14,6 @@ const SLOT = [
   { nama: 'larut', dari: 21, sapaan: ['Malam semakin larut', 'Jangan lupa istirahat', 'Selamat malam'] },
 ]
 
-/* Bumbu hari, ikut masuk kandungan acak hanya pada jam 06.00-17.59. getDay(): 0 Minggu ... 6 Sabtu. */
 const SEPANJANG_KERJA = (t) => t.getHours() >= 6 && t.getHours() < 18
 const HARI = [
   { teks: 'Semangat awal pekan', bila: (t) => t.getDay() === 1 && SEPANJANG_KERJA(t) },
@@ -44,11 +36,8 @@ function kandidat(slot, tanggal) {
 
 const kunciHari = (t) => t.getFullYear() + '-' + (t.getMonth() + 1) + '-' + t.getDate()
 
-let terpilih = null // { kunci, teks } pilihan sesi saat ini
+let terpilih = null
 
-/* Tanpa argumen acak: hasil disimpan per (hari + slot), jadi layar sambut login dan Beranda
- * menampilkan sapaan yang sama. Berganti saat slot jam berganti, hari berganti, atau halaman dimuat ulang.
- * Dengan argumen acak (fungsi mirip Math.random): tanpa simpanan, untuk pengujian. */
 export function sapaanWaktu(tanggal = new Date(), acak) {
   const slot = slotUntuk(tanggal.getHours())
   const daftar = kandidat(slot, tanggal)
@@ -63,13 +52,3 @@ export function sapaanWaktu(tanggal = new Date(), acak) {
   if (pakaiSimpanan) terpilih = { kunci, teks }
   return teks
 }
-// -- PAKAI INI JIKA INGIN YANG BIASA YA -- //
-/* Sapaan menurut jam. Memakai jam perangkat, jadi otomatis sesuai zona waktu pengguna (WIB, WITA, WIT).
- * 04.00-10.59 pagi, 11.00-14.59 siang, 15.00-17.59 sore, selebihnya malam. */
-// export function sapaanWaktu(tanggal = new Date()) {
-//   const jam = tanggal.getHours()
-//   if (jam >= 4 && jam < 11) return 'Selamat Pagi'
-//   if (jam >= 11 && jam < 15) return 'Selamat Siang'
-//   if (jam >= 15 && jam < 18) return 'Selamat Sore'
-//   return 'Selamat Malam'
-// }

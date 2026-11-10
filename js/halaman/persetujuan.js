@@ -81,7 +81,7 @@ export function render(wadah, pengguna) {
 
   const tersimpan = pulihkanTerbuka(PEMILIK)
   let langsung = ''
-  try { langsung = sessionStorage.getItem('sim_buka_mutasi') || ''; sessionStorage.removeItem('sim_buka_mutasi') } catch { /* abaikan */ }
+  try { langsung = sessionStorage.getItem('sim_buka_mutasi') || ''; sessionStorage.removeItem('sim_buka_mutasi') } catch {  }
   if (langsung) buka(langsung)
   else if (tersimpan) buka(tersimpan.id, tersimpan.tab)
   else tampilDaftar()

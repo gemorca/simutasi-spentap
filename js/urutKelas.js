@@ -1,4 +1,3 @@
-/* Urutan kelas: VII, VIII, IX (juga 7, 8, 9), lalu huruf rombel (A, B, ...), lalu tahun ajaran terbaru. */
 const NILAI_ROMAWI = { I: 1, V: 5, X: 10 }
 
 function romawiKeAngka(teks) {
@@ -11,7 +10,6 @@ function romawiKeAngka(teks) {
   return total
 }
 
-/* Ambil tingkat dari nama kelas. Contoh: "VII A" -> 7, "VIIIB" -> 8, "IX" -> 9, "7A" -> 7. Gagal -> tingkat null. */
 export function uraiKelas(nama) {
   const bersih = String(nama || '').trim().replace(/^kelas\s+/i, '')
   const m = /^(\d+|[IVX]+)/i.exec(bersih)

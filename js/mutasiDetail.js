@@ -30,7 +30,6 @@ const KOTAK_STATUS = {
   Disetujui: 'border-emerald-200 bg-emerald-50 text-emerald-900',
 }
 
-/* Simpan detail yang sedang dibuka di localStorage, supaya refresh halaman kembali ke detail yang sama. */
 const KUNCI_TERBUKA = 'sim_mutasi_terbuka'
 let sudahPulih = false
 
@@ -43,10 +42,10 @@ export function pulihkanTerbuka(pemilik) {
   } catch { return null }
 }
 export function hapusTerbuka() {
-  try { localStorage.removeItem(KUNCI_TERBUKA) } catch { /* penyimpanan tidak tersedia */ }
+  try { localStorage.removeItem(KUNCI_TERBUKA) } catch {  }
 }
 function tulisTerbuka(pemilik, id, tab) {
-  try { localStorage.setItem(KUNCI_TERBUKA, JSON.stringify({ pemilik, id, tab })) } catch { /* penyimpanan penuh/diblokir */ }
+  try { localStorage.setItem(KUNCI_TERBUKA, JSON.stringify({ pemilik, id, tab })) } catch {  }
 }
 
 export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaBaca = false, bisaPutuskan = false, bisaBatalkan = false, bisaHapusMutasi = false, bisaUbahNomor = false, onKembali, onUbah }) {
@@ -165,7 +164,6 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
       const el = akar.querySelector('[data-foto]')
       if (el) el.innerHTML = isiFoto(detail.mutasi)
     } catch (err) {
-      /* foto gagal dimuat: tetap tampilkan inisial */
     } finally {
       fotoMemuat = ''
     }
@@ -273,7 +271,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     const bisaUbah = !hanyaBaca && (m.status === 'Draft' || m.status === 'Ditolak')
     const arsip = m.sumber === 'arsip'
     const bisaLengkapi = !hanyaBaca && arsip
-    const bisaHapus = !hanyaBaca && bisaHapusMutasi && (m.status !== 'Disetujui' || arsip) // hapus: Admin saja (sama dengan backend)
+    const bisaHapus = !hanyaBaca && bisaHapusMutasi && (m.status !== 'Disetujui' || arsip)
     const tampilPutusan = bisaPutuskan && m.status === 'Diajukan'
     const tampilBatal = bisaBatalkan && m.status === 'Disetujui' && !arsip
     const tampilSurat = m.status === 'Disetujui' && !arsip
@@ -360,7 +358,6 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     }
     setSibuk(true)
     setInfo('Mengunggah ' + file.name + '...')
-    // Bar progres tampil di bawah tombol unggah pada kartu dokumen terkait (hanya tampilan).
     const kartu = akar.querySelector('input[data-jenis="' + CSS.escape(jenisDokumen) + '"]')
     const bar = kartu && kartu.closest('li') ? barProgres(kartu.closest('li'), 'Membaca file...') : null
     try {
@@ -387,7 +384,6 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     }
   }
 
-  /* Penampil berkas: kemudahan memeriksa berkas tanpa pindah tab, bukan pengaman (penampil PDF peramban tetap punya tombol unduh). */
   function lihat(idLampiran) {
     const berkas = detail.lampiran
     if (!berkas.some((l) => String(l.id) === String(idLampiran))) return
@@ -420,10 +416,9 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
 
     const area = d.querySelector('[data-area]')
     const tombolBaru = d.querySelector('[data-tab-baru]')
-    const blobs = new Map() // id -> { url, mime }
+    const blobs = new Map()
     let urutan = 0
     let aktifUrl = ''
-    // iframe PDF hanya dipakai di layar lebar dengan penunjuk presisi; di HP sering kosong/halaman 1 saja.
     const bisaIframePdf = () => window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
 
     async function tampil(id) {
@@ -472,10 +467,10 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
       else if (t.closest('[data-tab-baru], [data-tab-baru-isi]')) bukaTabBaru()
       else if (t.closest('[data-ulang]')) tampil(t.closest('[data-ulang]').dataset.ulang)
       else if (t.closest('[data-file]')) tampil(t.closest('[data-file]').dataset.file)
-      else if (t === d) d.close() // klik di luar kotak
+      else if (t === d) d.close()
     })
     d.addEventListener('close', () => {
-      blobs.forEach((b) => URL.revokeObjectURL(b.url)) // lepas memori
+      blobs.forEach((b) => URL.revokeObjectURL(b.url))
       blobs.clear()
       d.remove()
     }, { once: true })
@@ -547,7 +542,6 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     })
   }
 
-  // Petunjuk di bawah kolom Catatan berubah merah bila kosong saat menolak (tanpa kartu/toast).
   function tandaiCatatan(galat) {
     const kolom = akar.querySelector('textarea[name="catatan"]')
     const petunjuk = akar.querySelector('[data-petunjuk-catatan]')

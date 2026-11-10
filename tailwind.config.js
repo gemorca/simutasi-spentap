@@ -1,4 +1,3 @@
-/** Konfigurasi Tailwind untuk build produksi (menggantikan cdn.tailwindcss.com). */
 module.exports = {
   darkMode: 'class',
   content: ['./index.html', './js/**/*.js'],

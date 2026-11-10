@@ -7,11 +7,10 @@ import { periksa, wajib } from '../validasi.js'
 import { tampilKenaikan, tulisPeriode, kabarkanPeriode, tautanBackup } from './kenaikan.js'
 
 const IK_TA = 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2'
-// Ikon aksi khusus tahun ajaran (gaya garis, sama seperti IKON di ui.js).
 const IKON_TA = {
-  naik: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM16 12l-4-4-4 4M12 16V8', // panah naik dalam lingkaran
-  lanjut: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM10 8l6 4-6 4Z', // putar/lanjutkan
-  batal: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11', // urungkan
+  naik: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM16 12l-4-4-4 4M12 16V8',
+  lanjut: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM10 8l6 4-6 4Z',
+  batal: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11',
 }
 const KOLOM_FORM = ['tahun_ajaran', 'ganjil_mulai', 'ganjil_selesai', 'genap_mulai', 'genap_selesai']
 const KOLOM_TANGGAL = KOLOM_FORM.slice(1)
@@ -24,7 +23,6 @@ const STATUS_PERIODE = {
   berakhir: { label: 'Berakhir', kelas: 'bg-rose-50 text-rose-700 border-rose-200/80' },
 }
 
-/* ---------- Tanggal dan validasi (cermin aturan server: validasiTahunAjaran_ di Modul.gs) ---------- */
 function tanggalValid(s) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''))
   if (!m) return false
@@ -44,7 +42,6 @@ function tgl(iso) {
 
 const rentang = (a, b) => tgl(a) + ' - ' + tgl(b)
 
-/* Tanggal bawaan Juli-Juni, sama seperti server (tanggalSemesterBawaan_). */
 function tanggalBawaan(ta) {
   const y1 = Number(String(ta).substr(0, 4))
   return {
@@ -54,7 +51,6 @@ function tanggalBawaan(ta) {
 }
 
 const tglWajib = (nama) => (v) => (tanggalValid(v) ? '' : 'Tanggal ' + nama + ' wajib diisi dengan tanggal yang valid')
-// Galat bila v tidak lebih besar dari tanggal pembanding (format ISO bisa dibandingkan sebagai teks).
 const harusSetelah = (kunci, pesan) => (v, semua) => (
   tanggalValid(v) && tanggalValid(semua[kunci]) && v <= semua[kunci] ? pesan : ''
 )
@@ -70,7 +66,6 @@ const ATURAN = {
   genap_selesai: [tglWajib('Genap selesai'), harusSetelah('genap_mulai', 'Genap selesai harus setelah Genap mulai')],
 }
 
-/* Bentrok dengan tahun ajaran lain: nama kembar atau rentang tumpang tindih. Kembalikan {} bila aman. */
 function cariBentrok(v, lainnya) {
   for (const r of lainnya) {
     if (r.tahun_ajaran === v.tahun_ajaran) return { tahun_ajaran: 'Tahun ajaran ' + v.tahun_ajaran + ' sudah ada' }
@@ -81,7 +76,6 @@ function cariBentrok(v, lainnya) {
   return {}
 }
 
-/* ---------- Tampilan ---------- */
 function lencanaKenaikan(status) {
   if (status === 'selesai') return lencana('Disetujui', 'Selesai')
   if (status === 'berjalan') return lencana('Diajukan', 'Berjalan')
@@ -117,7 +111,6 @@ function kartuStatus(p) {
 }
 
 export function render(wadah, pengguna) {
-  // Halaman khusus Administrator. Menu sudah disembunyikan; ini pengaman jika halaman dibuka langsung.
   if (!pengguna || pengguna.peran !== 'admin') {
     wadah.innerHTML = judulHalaman({ judul: 'Tahun Ajaran', sub: 'Halaman ini hanya dapat diakses Administrator Utama.' })
     return
@@ -159,7 +152,6 @@ export function render(wadah, pengguna) {
     }))
   }
 
-  /* Muat dari server (AJAX). Hasil yang datang terlambat (layar sudah pindah) dibuang. */
   async function muat() {
     const saya = layar
     const urut = ++urutan
@@ -261,10 +253,9 @@ export function render(wadah, pengguna) {
     const ubah = Boolean(r)
     const bawaan = data.usulan || { tahun_ajaran: '', ganjil_mulai: '', ganjil_selesai: '', genap_mulai: '', genap_selesai: '' }
     const nilai = ubah ? r : bawaan
-    // Nama tahun ajaran dikunci bila sudah dipakai kelas atau kenaikan kelas (aturan server).
     const kunciNama = ubah && (Number(r.jumlah_kelas) > 0 || r.kenaikan_status !== 'belum')
     const lainnya = data.daftar.filter((x) => !ubah || x.id !== r.id)
-    let disentuh = ubah // tanggal bawaan hanya diisi otomatis bila belum diubah manual
+    let disentuh = ubah
 
     const catatanForm = !ubah && !data.daftar.length
       ? 'Tahun ajaran pertama langsung dianggap berjalan.'
@@ -301,7 +292,6 @@ export function render(wadah, pengguna) {
     form.addEventListener('change', (e) => {
       if (!e.target.name) return
       bersihkanGalat(form, e.target.name)
-      // Tambah baru: ganti tahun ajaran mengisi ulang tanggal bawaan Juli-Juni selama belum diubah manual.
       if (e.target.name === 'tahun_ajaran' && !ubah && !disentuh && formatTaValid(e.target.value)) {
         const t = tanggalBawaan(e.target.value.trim())
         for (const k of KOLOM_TANGGAL) { form.elements[k].value = t[k]; bersihkanGalat(form, k) }

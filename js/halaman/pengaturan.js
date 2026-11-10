@@ -12,7 +12,6 @@ const LABEL = {
   nip_kepala_sekolah: 'NIP Kepala Sekolah',
   tahun_ajaran_aktif: 'Tahun ajaran aktif',
 }
-// tahun_ajaran_aktif baca-saja: diisi sistem dari halaman Tahun Ajaran, tidak ikut dikirim.
 const KOLOM = Object.keys(LABEL).filter((k) => k !== 'tahun_ajaran_aktif')
 const PENUH = ['nama_sekolah', 'alamat_sekolah']
 

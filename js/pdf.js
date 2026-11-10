@@ -203,7 +203,6 @@ function gambarLogo(doc, logo, x, y) {
   doc.addImage(logo.data, 'PNG', x + (PDF_LOGO_KOTAK - w) / 2, y + (PDF_LOGO_KOTAK - h) / 2, w, h)
 }
 
-/* Kop surat: dua logo di kiri dan kanan, teks di tengah. Posisi logo diatur di dalam fungsi ini. */
 function gambarKop(doc, sekolah, logoSekolah, logoBonbol) {
   const { lebar } = halaman(doc)
   const xTeks = PDF_MARGIN + PDF_LOGO_KOTAK + 4
@@ -211,15 +210,8 @@ function gambarKop(doc, sekolah, logoSekolah, logoBonbol) {
   const pusat = lebar / 2
   let y = PDF_MARGIN
 
-  // Pilih SATU pasang di bawah. Aktifkan dengan menghapus tanda // di depannya, lalu beri // pada pasangan lain.
-
-  // kalau mau logo-sekolah kiri, logo-bonbol kanan, pakai ini:
   gambarLogo(doc, logoSekolah, PDF_MARGIN, y)
   gambarLogo(doc, logoBonbol, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
-
-  // kalau mau logo-bonbol kiri, logo-sekolah kanan, pakai ini:
-  //gambarLogo(doc, logoBonbol, PDF_MARGIN, y)
-  //gambarLogo(doc, logoSekolah, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
 
   doc.setTextColor(...PDF_WARNA.navy)
   doc.setFont(PDF_FONT, 'bold')
@@ -480,8 +472,6 @@ export async function unduhPdfRekap(lap) {
   return nama
 }
 
-/* Surat Keterangan siswa masuk. Data dari aksi suratData: nomor dan tanggal terbit tetap,
- * jadi cetak ulang menghasilkan surat yang sama. */
 export async function unduhPdfSurat(data) {
   const sekolah = data.sekolah || {}
   const surat = data.surat || {}

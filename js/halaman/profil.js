@@ -33,7 +33,6 @@ export function render(wadah, pengguna) {
         passwordLama: [wajib('Masukkan password saat ini untuk menyimpan perubahan')],
     }
 
-    // Avatar di halaman ini ikut berubah saat foto diganti. Pendengar dilepas bila halaman sudah ditinggalkan.
     const saatFotoBerubah = () => {
         if (!wadah.isConnected) { window.removeEventListener('foto-berubah', saatFotoBerubah); return }
         wadah.querySelectorAll('[data-avatar]').forEach((el) => isiAvatar(el, pengguna.nama))
@@ -226,7 +225,7 @@ export function render(wadah, pengguna) {
                 Object.assign(pengguna, hasil.pengguna)
                 window.dispatchEvent(new CustomEvent('profil-berubah', { detail: hasil.pengguna }))
                 if (!wadah.isConnected) return
-                tampilLihat() // kembali ke tampilan informasi dengan data terbaru
+                tampilLihat()
                 tampilPesan({ jenis: 'sukses', teks: hasil.pesan || 'Profil berhasil diperbarui.' })
             } catch (err) {
                 if (wadah.isConnected) tampilPesan({ jenis: 'galat', teks: err.message })

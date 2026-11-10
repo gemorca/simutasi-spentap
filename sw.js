@@ -1,6 +1,4 @@
-// Service worker SIM Mutasi Siswa.
-// Naikkan VERSI setiap rilis besar agar cache lama dibuang.
-const VERSI = 'sim-mutasi-v10'
+const VERSI = 'sim-mutasi-v11'
 const INTI = [
   './',
   'index.html',
@@ -10,10 +8,8 @@ const INTI = [
   'icons/icon-512.png',
   'assets/favicon.svg',
 ]
-// Host luar yang aman di-cache (pustaka dan font). API Apps Script TIDAK pernah di-cache.
 const HOST_LUAR = ['cdn.tailwindcss.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net']
 const BATAS_JARINGAN_MS = 4000
-// API (Apps Script) tidak pernah lewat cache: status periode harus selalu segar dari server.
 const HOST_API = ['script.google.com', 'googleusercontent.com']
 const untukApi = (host) => HOST_API.some((h) => host === h || host.endsWith('.' + h))
 
@@ -42,7 +38,6 @@ function simpan(req, res) {
   return res
 }
 
-// File aplikasi sendiri: jaringan dulu (selalu versi terbaru), cache bila offline atau lambat.
 function jaringanDulu(req) {
   return new Promise((selesai) => {
     let sudah = false
@@ -63,7 +58,6 @@ function jaringanDulu(req) {
   })
 }
 
-// Pustaka dan font luar: pakai cache, perbarui di belakang.
 function cacheDulu(req) {
   return caches.match(req).then((c) => {
     const ambil = fetch(req).then((res) => simpan(req, res)).catch(() => c)
@@ -75,12 +69,11 @@ self.addEventListener('fetch', (e) => {
   const req = e.request
   if (req.method !== 'GET') return
   const url = new URL(req.url)
-  if (untukApi(url.hostname)) return // langsung ke jaringan, tanpa cache
+  if (untukApi(url.hostname)) return
   if (url.origin === self.location.origin) {
     if (url.pathname.endsWith('/sw.js')) return
     e.respondWith(jaringanDulu(req))
   } else if (HOST_LUAR.includes(url.hostname)) {
     e.respondWith(cacheDulu(req))
   }
-  // Selain itu (script.google.com, googleusercontent.com, dll.) langsung ke jaringan.
 })

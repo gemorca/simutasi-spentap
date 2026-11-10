@@ -1,29 +1,23 @@
-// Satu-satunya tempat yang berbicara dengan backend GAS.
 import { urutKelas } from './urutKelas.js'
 export function ambilToken() { return sessionStorage.getItem('token') }
 export function simpanToken(token) { sessionStorage.setItem('token', token) }
 export function hapusToken() { sessionStorage.removeItem('token') }
 
-const TIMEOUT_MS = 45000 // GAS yang baru "bangun" bisa lambat; lebih dari ini dianggap gagal
+const TIMEOUT_MS = 45000
 const TTL_KELAS_MS = 60000
 
-// Aksi yang hanya membaca: aman diulang otomatis bila jaringan gagal. Aksi lain (tulis) tidak pernah diulang.
-// Jawaban server dengan ok:false (SESI_HABIS, PERIODE_TUTUP, dll.) tidak pernah diulang.
 const AKSI_BACA = new Set([
   'me', 'kelasDaftar', 'siswaDaftar', 'siswaDetail', 'mutasiDaftar', 'mutasiDetail', 'mutasiRiwayat',
   'dashboard', 'laporanRekap', 'logDaftar', 'pengaturanAmbil', 'penggunaDaftar', 'lampiranAmbil',
   'profilFotoAmbil',
 ])
 
-// Daftar kelas dipakai banyak halaman (filter, form). Simpan sebentar; dibuang saat ada aksi tulis.
 let cacheKelas = null
 
-/* Progres unggah hanya ESTIMASI dari ukuran data. Jangan pakai XMLHttpRequest.upload.onprogress/onload:
-   listener itu memicu preflight CORS (OPTIONS) yang tidak dijawab GAS, sehingga semua unggahan gagal. */
-const KECEPATAN_KIRIM = 300 * 1024 // byte/detik, perkiraan kasar untuk menghitung lama tahap 'kirim'
+const KECEPATAN_KIRIM = 300 * 1024
 
 function mulaiProgres(saatProgres, byteTotal) {
-  const aman = (p) => { try { saatProgres(p) } catch { /* tampilan progres tidak boleh menggagalkan unggahan */ } }
+  const aman = (p) => { try { saatProgres(p) } catch {  } }
   const estimasi = Math.min(30000, Math.max(1500, (byteTotal / KECEPATAN_KIRIM) * 1000))
   const mulai = Date.now()
   let diServer = false
@@ -85,14 +79,11 @@ export async function panggilApi(aksi, data = {}, { saatProgres } = {}) {
       hapusToken()
       window.dispatchEvent(new Event('sesi-habis'))
     }
-    // Periode tutup (belum mulai, menunggu kenaikan kelas, atau berakhir). Jawaban server yang sah,
-    // BUKAN galat jaringan: tidak pernah diulang otomatis. app.js menampilkan layar kunci.
     if (hasil.kode === 'PERIODE_TUTUP') {
       window.dispatchEvent(new CustomEvent('periode-tutup', { detail: hasil.data }))
     }
     throw new Error(hasil.pesan)
   }
-  // Semua dropdown kelas (filter, form, impor, laporan) memakai urutan yang sama: VII, VIII, IX.
   if (aksi === 'kelasDaftar' && Array.isArray(hasil.data)) hasil.data = [...hasil.data].sort(urutKelas)
   if (!baca) cacheKelas = null
   if (bisaCache) cacheKelas = { waktu: Date.now(), isi: JSON.stringify(hasil.data) }

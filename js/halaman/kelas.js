@@ -18,7 +18,6 @@ const ATURAN = {
 const SATUAN = 'kelas'
 
 export function render(wadah, pengguna) {
-  // Kelola Kelas khusus Administrator. Menu sudah disembunyikan; ini pengaman jika halaman dibuka langsung.
   if (!pengguna || pengguna.peran !== 'admin') {
     wadah.innerHTML = judulHalaman({ judul: 'Kelola Kelas', sub: 'Halaman ini hanya dapat diakses Administrator Utama.' })
     return
@@ -34,7 +33,6 @@ export function render(wadah, pengguna) {
   const idStr = (k) => String(k.id)
   const cari = (id) => daftar.find((k) => idStr(k) === String(id))
 
-  /* ---------- Filter ---------- */
   function opsiTingkat() {
     const peta = new Map()
     for (const k of daftar) {
@@ -65,7 +63,6 @@ export function render(wadah, pengguna) {
         <select name="tahun" class="${isi}">${opsiTahun()}</select></label></form>`
   }
 
-  /* Isi ulang pilihan dropdown dari data terbaru; nilai filter yang sudah tidak ada dikosongkan. */
   function segarkanOpsi() {
     const form = wadah.querySelector('[data-filter]')
     if (!form) return
@@ -122,7 +119,6 @@ export function render(wadah, pengguna) {
       + barAksiBawah({ pilihan, satuan: SATUAN, sibuk }))
   }
 
-  /* Muat dari server (AJAX). senyap = filter berubah: isi lama diredupkan, tidak dihapus. */
   async function muat(senyap = false) {
     const saya = layar
     const urut = ++urutan

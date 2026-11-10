@@ -25,9 +25,7 @@ const ATURAN_BARU = {
   peran: ATURAN_DASAR.peran,
 }
 const PILIHAN_PERAN = Object.keys(NAMA_PERAN).map((p) => ({ nilai: p, label: NAMA_PERAN[p] }))
-// Administrator Utama hanya satu akun: tidak ditawarkan saat tambah pengguna.
 const PILIHAN_BARU = PILIHAN_PERAN.filter((o) => o.nilai !== 'admin')
-// Saat ubah: akun admin hanya melihat peran Admin, akun lain tidak bisa dijadikan Admin.
 const pilihanPeran = (u) => (u && u.peran === 'admin' ? PILIHAN_PERAN.filter((o) => o.nilai === 'admin') : PILIHAN_BARU)
 
 export function render(wadah, saya) {
@@ -223,7 +221,6 @@ export function render(wadah, saya) {
       try {
         const hasil = await panggilApi('penggunaSimpan', { id: ubah ? u.id : '', ...isian })
         tampilPesan({ jenis: 'sukses', teks: ubah ? 'Data pengguna ' + isian.username + ' berhasil diperbarui' : 'Pengguna ' + isian.username + ' berhasil dibuat' })
-        // Admin mengubah akunnya sendiri: sinkronkan nama/username di header.
         if (ubah && sendiri(u) && hasil && hasil.pengguna) {
           window.dispatchEvent(new CustomEvent('profil-berubah', { detail: hasil.pengguna }))
         }

@@ -1,13 +1,8 @@
-// PWA: daftar service worker dan tombol "Install Aplikasi".
-// Tombol bawaan melayang di pojok kanan bawah. Untuk menaruh tombol sendiri (misal di sidebar),
-// cukup tambah elemen: <button type="button" data-pwa-install hidden>Install Aplikasi</button>
 let tunda = null
 
 const mandiri = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
 const iOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
   || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-// Tombol hanya muncul saat form login tampil dan siap diisi.
-// Hilang di: layar "Memuat aplikasi", animasi sukses login, layar sambutan (splash), dan seluruh aplikasi.
 const diLogin = () => {
   const layar = document.getElementById('layar')
   if (!layar || layar.classList.contains('hidden')) return false
@@ -17,7 +12,6 @@ const diLogin = () => {
 }
 const bisaTampil = () => diLogin() && !mandiri() && (tunda !== null || iOS())
 
-// Tombol tidak pernah hilang: tombol tutup (x) hanya mengecilkannya jadi ikon bulat. Pilihan diingat.
 const KUNCI_KECIL = 'pwa-tombol-kecil'
 function bacaKecil() {
   try { return localStorage.getItem(KUNCI_KECIL) === '1' } catch (e) { return false }
@@ -49,7 +43,6 @@ function segarkan() {
 }
 
 const UA = navigator.userAgent
-// Browser bawaan aplikasi (WhatsApp, Instagram, Telegram, dll.) dan Firefox iOS tidak punya menu "Tambah ke Layar Utama".
 const dalamAplikasi = () => /FBAN|FBAV|Instagram|Line\/|MicroMessenger|Telegram|WhatsApp|TikTok|Twitter|GSA\/|FxiOS|; wv\)/i.test(UA)
 const iPad = () => /ipad/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
 const chromeIOS = () => /CriOS|EdgiOS/i.test(UA)
@@ -65,7 +58,6 @@ const IK = {
 }
 const svg = (d, ukuran = 22) => `<svg viewBox="0 0 24 24" width="${ukuran}" height="${ukuran}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`
 
-// Tiruan bilah alat Safari. Ikon yang harus diketuk disorot dan ditunjuk panah beranimasi.
 function bilahTiruan(tablet) {
   const ikon = (d, sorot) => `<span class="pwa-ik${sorot ? ' pwa-sorot' : ''}">${svg(d)}${sorot ? `<i class="pwa-panah ${tablet ? 'pwa-panah-bawah' : 'pwa-panah-atas'}" aria-hidden="true">${tablet ? '&#9650;' : '&#9660;'}</i>` : ''}</span>`
   return `<div class="pwa-bilah ${tablet ? 'pwa-bilah-atas' : ''}" aria-hidden="true">
@@ -94,7 +86,7 @@ async function salinTautan(tombol) {
     t.style.opacity = '0'
     document.body.appendChild(t)
     t.select()
-    try { document.execCommand('copy') } catch (err) { /* abaikan */ }
+    try { document.execCommand('copy') } catch (err) {  }
     t.remove()
   }
   tombol.textContent = 'Tautan disalin. Tempel di Safari'
@@ -135,18 +127,17 @@ function panduanIOS() {
   d.showModal()
 }
 
-// Panduan muncul otomatis satu kali di iOS, setelah pengguna berhasil login.
 function panduanOtomatis() {
   if (!iOS() || mandiri()) return
   const kunci = 'pwa-panduan-dilihat'
-  try { if (localStorage.getItem(kunci)) return } catch (e) { /* abaikan */ }
+  try { if (localStorage.getItem(kunci)) return } catch (e) {  }
   let menunggu = 0
   const cek = setInterval(() => {
     const app = document.getElementById('aplikasi')
-    if (++menunggu > 600) { clearInterval(cek); return } // berhenti setelah sekitar 10 menit
+    if (++menunggu > 600) { clearInterval(cek); return }
     if (!app || app.classList.contains('hidden')) return
     clearInterval(cek)
-    try { localStorage.setItem(kunci, '1') } catch (e) { /* abaikan */ }
+    try { localStorage.setItem(kunci, '1') } catch (e) {  }
     setTimeout(() => { if (!document.querySelector('dialog[open]')) panduanIOS() }, 1200)
   }, 1000)
 }
@@ -157,7 +148,7 @@ async function pasang() {
     tunda = null
     segarkan()
     t.prompt()
-    try { await t.userChoice } catch (e) { /* abaikan */ }
+    try { await t.userChoice } catch (e) {  }
   } else if (iOS()) {
     panduanIOS()
   }
@@ -173,7 +164,7 @@ window.addEventListener('appinstalled', () => { tunda = null; segarkan() })
 document.addEventListener('click', (e) => {
   if (e.target.closest('[data-pwa-install]')) pasang()
   else if (e.target.closest('[data-pwa-tutup]')) {
-    try { localStorage.setItem(KUNCI_KECIL, '1') } catch (err) { /* abaikan */ }
+    try { localStorage.setItem(KUNCI_KECIL, '1') } catch (err) {  }
     const l = document.getElementById('pwa-pasang')
     if (l) l.classList.add('pwa-kecil')
   }
@@ -181,7 +172,6 @@ document.addEventListener('click', (e) => {
 
 window.matchMedia('(display-mode: standalone)').addEventListener('change', segarkan)
 
-// Pantau pergantian login <-> aplikasi supaya tombol muncul/hilang otomatis.
 function pantauLogin() {
   const opsi = { childList: true, attributes: true, attributeFilter: ['class'] }
   const pengamat = new MutationObserver(segarkan)
@@ -193,7 +183,7 @@ function pantauLogin() {
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* gagal daftar: aplikasi tetap jalan biasa */ })
+    navigator.serviceWorker.register('sw.js').catch(() => {  })
   })
 }
 

@@ -2,11 +2,8 @@ import { panggilApi } from './api.js'
 import { bacaHalaman, pindah } from './router.js'
 import { esc } from './ui.js'
 
-/* Lonceng pengajuan siswa masuk yang menunggu persetujuan; hanya untuk peran kepala_sekolah. Angka merah dan kedip = belum dibaca,
-   status baca disimpan per akun di perangkat ini. Klik membuka detail di Persetujuan tanpa menandai dibaca; kedip berhenti lewat "Tandai telah dibaca" atau saat pengajuan diputuskan. */
-
 const SELANG_MS = 60000
-const KUNCI_BUKA = 'sim_buka_mutasi' // dibaca oleh halaman Persetujuan untuk langsung membuka detail
+const KUNCI_BUKA = 'sim_buka_mutasi'
 const $ = (id) => document.getElementById(id)
 
 let aktif = false
@@ -43,7 +40,7 @@ function muatBaca() {
   try { return new Set(JSON.parse(localStorage.getItem(kunciSimpan())) || []) } catch { return new Set() }
 }
 function simpanBaca() {
-  try { localStorage.setItem(kunciSimpan(), JSON.stringify([...baca])) } catch { /* penyimpanan tidak tersedia */ }
+  try { localStorage.setItem(kunciSimpan(), JSON.stringify([...baca])) } catch {  }
 }
 
 const belumDibaca = () => daftar.filter((m) => !baca.has(kunci(m)))
@@ -103,7 +100,7 @@ function gambarPanel() {
 function gambar() { gambarTombol(); gambarPanel() }
 
 function keHalamanPersetujuan(id) {
-  try { if (id) sessionStorage.setItem(KUNCI_BUKA, id) } catch { /* abaikan */ }
+  try { if (id) sessionStorage.setItem(KUNCI_BUKA, id) } catch {  }
   if (bacaHalaman() === 'persetujuan') window.dispatchEvent(new Event('hashchange'))
   else pindah('persetujuan')
 }
@@ -136,7 +133,6 @@ export async function segarkanNotifikasi() {
     daftar = hasil.daftar || []
     sudahMuat = true
     gagal = false
-    // buang tanda baca untuk pengajuan yang sudah tidak menunggu
     const hidup = new Set(daftar.map(kunci))
     const sisa = [...baca].filter((k) => hidup.has(k))
     if (sisa.length !== baca.size) { baca = new Set(sisa); simpanBaca() }

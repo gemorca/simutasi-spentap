@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f172a">
-  <!-- Terapkan tema tersimpan sebelum CSS dimuat (mencegah kilatan putih). Logika lengkap ada di js/tema.js. -->
   <script>
     (function () {
       try {
@@ -14,9 +13,8 @@
         r.classList.toggle('dark', gelap);
         r.style.colorScheme = gelap ? 'dark' : 'light';
         if (gelap) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0b1220');
-      } catch (e) { /* abaikan */ }
-    })();
-  </script>
+      } catch (e) {  }
+    })();</script>
   <title>SIM Mutasi Siswa - SMP Negeri 1 Tapa</title>
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
@@ -54,8 +52,7 @@
           }
         }
       }
-    }
-  </script>
+    }</script>
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/komponen.css">
   <link rel="stylesheet" href="css/desain.css">
@@ -64,10 +61,8 @@
   <script src="config.js"></script>
 </head>
 <body class="h-full font-sans antialiased bg-slate-50 text-slate-900 selection:bg-blue-500 selection:text-white">
-  <!-- Indikator progres perpindahan halaman (diatur oleh js/app.js lewat body[data-memuat]) -->
   <div id="bar-muat" aria-hidden="true"></div>
 
-  <!-- Layar pemuatan awal & Login -->
   <div id="layar" class="min-h-dvh grid place-items-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
     <div class="w-full max-w-sm text-center" role="status">
       <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mb-4"></div>
@@ -75,16 +70,15 @@
     </div>
   </div>
 
-  <!-- Kerangka Aplikasi (setelah login) -->
   <div id="aplikasi" class="hidden min-h-dvh flex flex-col">
     <div class="min-h-dvh sm:flex flex-1">
       <a href="#isi" id="lompat" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2.5 focus:shadow-lg focus:outline-none">Lewati ke konten utama</a>
-      
+
       <div id="scrim" class="fixed inset-0 z-30 hidden bg-slate-900/60 backdrop-blur-sm sm:hidden transition-opacity" aria-hidden="true"></div>
 
       <aside id="samping" aria-label="Menu utama" data-buka="false"
         class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col bg-slate-900 text-slate-400 transition-transform duration-300 ease-in-out data-[buka=true]:translate-x-0 sm:sticky sm:top-0 sm:h-dvh sm:shrink-0 sm:translate-x-0 shadow-2xl sm:shadow-none border-r border-slate-800">
-        
+
         <div class="flex items-center justify-between gap-3 px-5 py-5 border-b border-slate-800/80">
           <div class="flex items-center gap-3.5">
             <div class="h-10 w-10 rounded-xl bg-blue-600/20 border border-blue-500/30 grid place-items-center shrink-0 shadow-inner">
@@ -118,10 +112,9 @@
           <button type="button" id="buka-laci" aria-label="Buka menu" aria-expanded="false" aria-controls="samping" class="rounded-xl p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors sm:hidden">
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          
+
           <div id="judul" class="flex-1 truncate text-xl font-bold text-slate-900 tracking-tight"></div>
-          
-          <!-- Notifikasi (khusus Kepala Sekolah) -->
+
           <div id="notif" hidden class="shrink-0 sm:relative">
             <button type="button" id="notif-tombol" aria-label="Notifikasi" aria-haspopup="true" aria-expanded="false" aria-controls="notif-panel" class="notif-tombol relative grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800">
               <svg class="notif-bel h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
@@ -130,7 +123,6 @@
             <div id="notif-panel" hidden class="absolute inset-x-3 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5 sm:inset-x-auto sm:right-0 sm:w-96"></div>
           </div>
 
-          <!-- Tema tampilan: tiga pilihan berjejer, langsung dipilih (diatur js/tema.js) -->
           <div id="tema" role="radiogroup" aria-label="Tema tampilan" class="tema-grup shrink-0">
             <span class="tema-geser" aria-hidden="true"></span>
             <button type="button" role="radio" aria-checked="false" data-tema="terang" aria-label="Tema terang" title="Tema terang" class="tema-opsi"><span data-ikon aria-hidden="true" class="grid place-items-center"></span></button>
@@ -147,7 +139,7 @@
               </span>
               <svg class="block h-4 w-4 text-slate-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            
+
             <div id="akun-panel" hidden class="absolute right-0 top-full z-30 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-black/5">
               <div class="border-b border-slate-100 px-4 py-3 leading-tight bg-slate-50/50 rounded-xl mb-1">
                 <strong id="panel-nama" class="block text-sm font-bold text-slate-900"></strong>
@@ -171,7 +163,6 @@
     </div>
   </div>
 
-  <!-- Layar kunci periode: layar penuh untuk non-Admin saat periode tidak aktif. Diisi dan diatur js/app.js. -->
   <div id="kunci" class="hidden" role="alertdialog" aria-modal="true" aria-labelledby="kunci-judul" aria-describedby="kunci-pesan">
     <div class="kunci-kartu">
       <div class="kunci-ikon" aria-hidden="true">

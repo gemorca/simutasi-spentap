@@ -1,6 +1,3 @@
-/* Tema tampilan: terang, gelap, atau sistem (mengikuti pengaturan perangkat).
- * Pilihan disimpan di localStorage dan diterapkan sebagai kelas "dark" pada <html>.
- * Skrip kecil di <head> index.html menerapkan tema lebih awal supaya layar tidak berkedip. */
 
 const KUNCI = 'sim-mutasi-tema'
 export const DAFTAR_MODE = ['terang', 'gelap', 'sistem']
@@ -38,9 +35,6 @@ function terapkan() {
   window.dispatchEvent(new CustomEvent('tema-berubah', { detail: { mode, gelap } }))
 }
 
-/* Animasi pergantian terang/gelap.
- * Utama: View Transitions API, lingkaran melebar dari titik klik.
- * Cadangan (browser lama): kelas "tema-ganti" memberi transisi warna 350 ms. */
 let pewaktuGanti = 0
 function animasiGanti(ubah, titik) {
   const akar = document.documentElement
@@ -56,7 +50,7 @@ function animasiGanti(ubah, titik) {
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
         { duration: 550, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' }
       )
-    }).catch(() => { /* peralihan dibatalkan: tema tetap berlaku */ })
+    }).catch(() => {  })
     return
   }
 
@@ -66,24 +60,19 @@ function animasiGanti(ubah, titik) {
   pewaktuGanti = setTimeout(() => akar.classList.remove('tema-ganti'), 450)
 }
 
-/* titik: { x, y } pusat lingkaran animasi (opsional). */
 export function aturMode(baru, titik) {
   if (!DAFTAR_MODE.includes(baru)) return
   const sebelumGelap = sedangGelap()
   mode = baru
-  try { localStorage.setItem(KUNCI, baru) } catch { /* penyimpanan diblokir: tema tetap berlaku untuk sesi ini */ }
-  // Warna layar sama (mis. Gelap ke Sistem di perangkat gelap): tidak perlu animasi halaman.
+  try { localStorage.setItem(KUNCI, baru) } catch {  }
   if (sedangGelap() === sebelumGelap) terapkan()
   else animasiGanti(terapkan, titik)
 }
 
-/* Panggil sekali, paling awal. */
 export function mulaiTema() {
   mode = bacaTersimpan()
   terapkan()
-  // Mode "sistem": ikuti perubahan tema perangkat secara langsung.
   mqGelap.addEventListener('change', () => { if (mode === 'sistem') terapkan() })
-  // Sinkron antar tab.
   window.addEventListener('storage', (e) => {
     if (e.key !== KUNCI) return
     mode = bacaTersimpan()
@@ -91,8 +80,6 @@ export function mulaiTema() {
   })
 }
 
-/* ---------- Pemilih di header (di samping tombol akun) ----------
- * Tiga tombol berjejer (Terang / Gelap / Sistem). Langsung dipilih, tanpa membuka menu. */
 let grup = null
 let opsi = []
 
@@ -121,7 +108,6 @@ export function pasangPemilihTema() {
     const o = e.target.closest('[data-tema]')
     if (o) aturMode(o.dataset.tema, titikDari(o))
   })
-  // Panah kiri/kanan (radiogroup): pindah sekaligus memilih.
   grup.addEventListener('keydown', (e) => {
     const maju = e.key === 'ArrowRight' || e.key === 'ArrowDown'
     const mundur = e.key === 'ArrowLeft' || e.key === 'ArrowUp'
@@ -134,6 +120,5 @@ export function pasangPemilihTema() {
   })
   window.addEventListener('tema-berubah', sinkronUi)
   sinkronUi()
-  // Indikator geser baru boleh beranimasi setelah posisi awal tergambar (hindari geseran saat muat).
   requestAnimationFrame(() => requestAnimationFrame(() => grup.classList.add('siap')))
 }

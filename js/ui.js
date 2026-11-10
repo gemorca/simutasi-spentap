@@ -27,13 +27,10 @@ export const IKON = {
   info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 8v4M12 16h.01',
 }
 
-/* Spinner SVG (animasi SMIL, tidak butuh CSS). Warna ikut currentColor. */
 export function spinner(kelas = 'h-4 w-4') {
   return `<svg class="${esc(kelas)} shrink-0" viewBox="0 0 24 24" fill="none" role="img" aria-label="Memproses"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/></path></svg>`
 }
 
-/* Status sibuk tombol (satu tempat untuk semua halaman). Tampilan sama seperti tombol Masuk: spinner + "Memproses...".
-   Idempoten: memanggil dua kali tidak merusak isi asli. Tombol ikon (kelas aksi-ikon) hanya menampilkan spinner. */
 const KEADAAN_TOMBOL = new WeakMap()
 export function sibukTombol(el, sibuk, teks = 'Memproses...') {
   if (!el || !el.isConnected) return
@@ -54,14 +51,11 @@ export function sibukTombol(el, sibuk, teks = 'Memproses...') {
   }
 }
 
-/* Jalankan kerja async dengan tombol sibuk; selalu dipulihkan di akhir. */
 export async function denganSibuk(el, kerja, teks) {
   sibukTombol(el, true, teks)
   try { return await kerja() } finally { sibukTombol(el, false) }
 }
 
-/* Bar progres unggah di bawah elemen `wadah` (mis. kartu dokumen). Nilai hanya naik; 100% hanya lewat selesai(), setelah server membalas.
-   Byte terkirim dipetakan ke 5-90%; selama server memproses, bar merayap pelan sampai maks 99%. */
 export function barProgres(wadah, label = 'Menyiapkan...') {
   const el = document.createElement('div')
   el.className = 'progres mt-3'
@@ -87,7 +81,6 @@ export function barProgres(wadah, label = 'Menyiapkan...') {
   tampil(label)
   return {
     naik,
-    /* Teruskan objek progres dari panggilApi(..., { saatProgres }). */
     api(p) {
       if (p.tahap === 'kirim' && p.total > 0) { if (!pewaktu) naik(5 + (p.dimuat / p.total) * 85, 'Mengunggah...') }
       else if (p.tahap === 'server') {
@@ -112,13 +105,11 @@ export function ikon(d, kelas = 'h-[18px] w-[18px]') {
   return `<svg class="${esc(kelas)} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${esc(d)}"/></svg>`
 }
 
-/* Tunda pemanggilan fn sampai pengguna berhenti mengetik (debounce). */
 export function tunda(fn, ms = 400) {
   let t
   return (...arg) => { clearTimeout(t); t = setTimeout(() => fn(...arg), ms) }
 }
 
-/* Redupkan area data saat filter memuat ulang, tanpa menghapus isi lama (tidak berkedip). */
 export function tandaiMemuat(el, aktif) {
   if (!el) return
   el.classList.toggle('opacity-60', aktif)
@@ -128,7 +119,6 @@ export function tandaiMemuat(el, aktif) {
   else el.removeAttribute('aria-busy')
 }
 
-/* Jenis kelamin ditulis lengkap (data tersimpan sebagai L/P). */
 export function namaJenisKelamin(v) {
   const k = String(v || '').trim().toUpperCase()
   return k === 'L' ? 'Laki-laki' : k === 'P' ? 'Perempuan' : (k || '-')
@@ -189,8 +179,6 @@ function buatDialog(isi) {
   return d
 }
 
-/* Tombol yang menunggu hasil async tidak boleh berputar saat dialog konfirmasi terbuka (pengguna masih memutuskan).
-   Spinner dilepas saat dialog dibuka dan dipasang lagi saat dialog ditutup, jika kerja masih berjalan. */
 const MENUNGGU = new Set()
 let dialogTerbuka = 0
 
@@ -295,7 +283,6 @@ export function dialogPasswordBaru({ username, password, judul = 'Password Baru 
   return bukaModal(d)
 }
 
-/* Animasi keluar singkat, lalu elemen dilepas (perilaku sama seperti t.remove() sebelumnya). */
 function tutupToast(t) {
   if (t.dataset.menutup) return
   t.dataset.menutup = '1'
@@ -454,10 +441,8 @@ export function aksiIkon({ aksi, id = '', label, d, bahaya = false, nonaktif = f
     class="aksi-ikon inline-grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white disabled:hover:text-slate-500 disabled:hover:border-slate-200 ${warna}">${ikon(d, 'h-[18px] w-[18px]')}</button>`
 }
 
-// Garis tegak antar kolom: header lebih tegas supaya batas kolom jelas.
 const SEL = 'border-b border-r border-slate-200 last:border-r-0 px-4 py-3.5'
 const SELH = 'border-b border-r border-slate-300 last:border-r-0 px-4 py-3.5'
-// Semua kolom (judul dan isi) rata tengah. Kolom 'angka' tetap memakai angka sejajar.
 const RATA = { tengah: ' text-center', angka: ' text-center tabular-nums' }
 const TENGAH = ' text-center'
 
@@ -536,7 +521,6 @@ export function pasangAksi(wadah, peta) {
     const f = PETA_AKSI.get(wadah)[el.dataset.aksi]
     if (!f) return
     const hasil = f(el.dataset.id, el)
-    // Handler async: tombol berubah jadi "Memproses..." sampai selesai, supaya pengguna tahu sedang berjalan.
     if (hasil && typeof hasil.then === 'function') {
       MENUNGGU.add(el)
       if (!dialogTerbuka) sibukTombol(el, true)

@@ -115,7 +115,6 @@ export function render(wadah, pengguna) {
     window.scrollTo(0, 0)
   }
 
-  // Setelah halaman di-refresh, buka lagi detail yang tadi sedang dibuka (lampiran tetap ada di server).
   const tersimpan = pulihkanTerbuka(PEMILIK)
   if (tersimpan) bukaDetail(tersimpan.id, tersimpan.tab)
   else tampilDaftar()

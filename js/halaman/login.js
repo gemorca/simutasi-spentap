@@ -10,10 +10,9 @@ const KELAS_INPUT = 'w-full rounded-xl border border-slate-300 bg-slate-50/50 px
 const HERO_JUDUL = 'Sistem Informasi Mutasi Siswa'
 const HERO_ISI = 'Kelola pendaftaran, seleksi, serta rekapitulasi siswa pindahan secara terpadu, cepat, dan akurat.'
 
-const LAMA_SAMBUT = 7500 // ms sambutan tampil (bar progres selesai sekitar 7200 ms) (jika terlalu lama, ubah disini dan di login.css nomor 169)
+const LAMA_SAMBUT = 7500
 const CENTANG = '<svg class="login-centang h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
 
-/* Layar sambutan sesudah login berhasil: "Selamat pagi, <nama>" sesuai jam perangkat. */
 function buatSambut(pengguna) {
   const el = document.createElement('div')
   el.className = 'login-sambut'
@@ -30,8 +29,6 @@ function buatSambut(pengguna) {
   return el
 }
 
-/* Urutan: tombol jadi centang, kartu naik keluar, latar memburam, sambutan muncul, lalu masuk aplikasi.
-   Klik atau Enter/Esc/Spasi melewati sambutan. Tidak pernah melempar galat. */
 function animasiSukses(wadah, tombol, pengguna) {
   return new Promise((selesai) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { selesai(); return }
@@ -187,7 +184,6 @@ export function render(wadah, onBerhasil) {
       await animasiSukses(wadah, tombolKirim, hasil.pengguna)
       onBerhasil(hasil.pengguna)
     } catch (err) {
-      // Pulihkan kartu bila galat terjadi setelah animasi sukses dimulai.
       sudahMasuk = false
       wadah.classList.remove('login-sukses')
       wadah.querySelectorAll('.login-sambut').forEach((el) => el.remove())

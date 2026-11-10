@@ -1,5 +1,3 @@
-/* Dimuat setelah app.css dan komponen.css. Hanya tampilan: tidak menyentuh logika, API, state, atau event handler.
-   Animasi: hanya transform + opacity, 150-400ms, hormati reduced-motion. */
 
 :root {
   --acc: #2563eb;
@@ -43,7 +41,6 @@ body.laci-buka { overflow: hidden; }
 .scrollbar-thin::-webkit-scrollbar { width: 6px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
 
-/* Fokus bawaan untuk kontrol yang tidak punya ring Tailwind (spesifisitas 0). */
 :where(input, select, textarea):focus-visible { outline: none; box-shadow: 0 0 0 3px var(--acc-ring); }
 
 @keyframes d-naik { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -61,7 +58,6 @@ body.laci-buka { overflow: hidden; }
 @keyframes d-penanda { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 @keyframes d-jalan { 0% { transform: scaleX(0); } 60% { transform: scaleX(0.7); } 100% { transform: scaleX(0.92); } }
 
-/* Entrance halaman, login, stagger */
 .halaman-masuk { animation: d-naik var(--dur-slow) var(--ease-out) backwards; }
 
 #layar > div { animation: d-skala 420ms var(--ease-out) backwards; }
@@ -82,7 +78,6 @@ body.laci-buka { overflow: hidden; }
 .stagger > :nth-child(8) { animation-delay: 310ms; }
 .stagger > :nth-child(n + 9) { animation-delay: 350ms; }
 
-/* Progress bar tipis saat berpindah halaman (diatur lewat body[data-memuat]). */
 #bar-muat {
   position: fixed;
   inset: 0 0 auto 0;
@@ -122,7 +117,6 @@ body[data-memuat="selesai"] #bar-muat { opacity: 0; transform: scaleX(1); transi
 }
 #menu a:active { transform: scale(0.98); }
 
-/* Menu muncul berurutan saat laci mobile dibuka. */
 #samping[data-buka="true"] #menu li { animation: d-geser-kiri 300ms var(--ease-out) backwards; }
 #samping[data-buka="true"] #menu li:nth-child(2) { animation-delay: 30ms; }
 #samping[data-buka="true"] #menu li:nth-child(3) { animation-delay: 60ms; }
@@ -138,7 +132,6 @@ body[data-memuat="selesai"] #bar-muat { opacity: 0; transform: scaleX(1); transi
 #akun-tombol[aria-expanded="true"] svg:last-child { transform: rotate(180deg); }
 #akun-panel button { transition: background-color var(--dur-fast) var(--ease-std), color var(--dur-fast) var(--ease-std); }
 
-/* Tombol akun di mobile (< 640px): pil berisi avatar + panah. Di sm ke atas tampilan semula. */
 @media (max-width: 639.98px) {
   #akun-tombol {
     gap: 0.375rem;
@@ -187,7 +180,6 @@ body .aksi-ikon svg { transition: transform var(--dur-base) var(--ease-out); }
 }
 body .aksi-ikon:not(:disabled):active { transform: scale(0.92); box-shadow: none; transition-duration: 80ms; }
 
-/* Area sentuh nyaman di layar sentuh (>= 44px). */
 @media (pointer: coarse) {
   body .btn { min-height: 2.75rem; }
   body .aksi-ikon { min-width: 2.5rem; min-height: 2.5rem; }
@@ -209,17 +201,14 @@ body .aksi-ikon:not(:disabled):active { transform: scale(0.92); box-shadow: none
   }
   .ringkas-k:hover .ikon-chip { transform: scale(1.08) rotate(-4deg); background-color: #dbeafe; }
 }
-/* Layar sentuh tidak punya hover: beri umpan balik saat ditekan. */
 .ringkas-k:active, .dt-k:active, .kelas-kartu:active { transform: scale(0.99); }
 
 .ikon-chip { transition: transform var(--dur-base) var(--ease-out), background-color var(--dur-base) var(--ease-std); }
 .ringkas-k { font-variant-numeric: tabular-nums; }
 
-/* Bar keterisian kelas dan grafik tumbuh saat dimuat. */
 .kelas-kartu [role="progressbar"] > div { transform-origin: left; animation: d-bar-isi 700ms var(--ease-out) 120ms backwards; }
 .bar-grafik { transform-box: fill-box; transform-origin: bottom; animation: d-bar-naik 600ms var(--ease-out) 150ms backwards; }
 
-/* Judul halaman + aksi (HP: tombol aksi memenuhi lebar). */
 @media (max-width: 639px) {
   .judul-halaman .judul-aksi { width: 100%; }
   .judul-halaman .judul-aksi > * { flex: 1 1 auto; }
@@ -264,7 +253,6 @@ body input[type="file"]::file-selector-button:hover { background: #f1f5f9; }
 
 body textarea { resize: vertical; }
 
-/* Pesan galat muncul halus; kolom yang salah bergetar sekali. */
 [data-galat]:not([hidden]) { animation: d-naik var(--dur-base) var(--ease-out); }
 body [aria-invalid="true"] { animation: d-goyang 300ms ease-in-out; }
 
@@ -285,7 +273,6 @@ dialog.dlg[open]::backdrop { animation: d-fade 220ms ease-out; }
 .toast-item { animation: d-toast-masuk 280ms var(--ease-out); }
 .toast-item.toast-keluar { animation: d-toast-keluar 180ms ease-in forwards; }
 
-/* Skeleton, empty state, error state */
 .skel {
   border-radius: var(--r-sm);
   background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 40%, #e2e8f0 60%);
@@ -295,7 +282,6 @@ dialog.dlg[open]::backdrop { animation: d-fade 220ms ease-out; }
 .kosong-ui { animation: d-skala 320ms var(--ease-out) backwards; }
 .kosong-ui .kosong-ikon { animation: d-skala 420ms var(--ease-out) 100ms backwards; }
 
-/* Bar progres unggah (transform saja; 100% hanya setelah server membalas) */
 .progres-trek { position: relative; height: 0.5rem; overflow: hidden; border-radius: 9999px; background: #e2e8f0; }
 .progres-isi {
   position: relative;
@@ -324,7 +310,6 @@ dialog.dlg[open]::backdrop { animation: d-fade 220ms ease-out; }
 .progres-galat [data-label] { color: #be123c; }
 @media (prefers-reduced-motion: reduce) { .progres-isi::after { animation: none; opacity: 0; } }
 
-/* Tablet: kartu data dua kolom */
 @media (min-width: 640px) and (max-width: 1023px) {
   .dt-kartu { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

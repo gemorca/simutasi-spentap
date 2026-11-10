@@ -29,7 +29,6 @@ export function render(wadah) {
   const form = wadah.querySelector('[data-filter]')
   const isi = wadah.querySelector('[data-isi]')
 
-  // Isi pilihan aksi dari data server; pilihan yang sedang aktif dipertahankan.
   function isiPilihanAksi(daftar) {
     const sel = form.elements.aksi
     const dipilih = filter.aksi

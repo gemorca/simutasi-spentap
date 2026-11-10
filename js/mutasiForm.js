@@ -19,7 +19,6 @@ const ATURAN = {
   alasan: [wajib('Alasan pindah wajib diisi')],
 }
 
-// Kata kunci untuk memetakan pesan "... wajib ..." dari server ke kolom yang tepat.
 const PETA_SERVER = [
   ['nama_siswa', 'nama siswa'],
   ['tempat_lahir', 'tempat lahir'],
@@ -144,7 +143,6 @@ export function renderForm(wadah, { id = '', onSelesai }) {
       } catch (err) {
         if (!akar.isConnected) return
         sibukSimpan(form, false, TEKS_SIMPAN)
-        // Pesan "wajib" dari server: tampilkan langsung pada kolom terkait, bukan dialog.
         const pesan = String(err.message || '')
         const cocok = /wajib|nisn/i.test(pesan)
           ? PETA_SERVER.find(([, kata]) => pesan.toLowerCase().includes(kata))

@@ -1,7 +1,3 @@
-/* Tampilan login: foto sekolah sebagai latar, kartu naik dari bawah, logo geser dari kiri,
-   judul menyapu masuk dengan gradien biru-putih yang terus bergerak.
-   Dimuat setelah desain.css. Hanya tampilan. Hormati reduced-motion.
-   Foto latar: assets/background-sekolah.png */
 
 :root { --l-lambat: cubic-bezier(0.22, 0.8, 0.3, 1); }
 
@@ -21,7 +17,6 @@
 @keyframes l-denyut { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.9); opacity: 0; } }
 @keyframes l-kilap { from { transform: translateX(-130%) skewX(-18deg); } to { transform: translateX(260%) skewX(-18deg); } }
 
-/* ---------- Latar: foto sekolah + zoom pelan + lapisan gelap agar kartu tetap jelas ---------- */
 #layar { position: relative; background-color: #0f172a; }
 #layar::before,
 #layar::after { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -38,10 +33,8 @@
 }
 #layar > div { position: relative; z-index: 1; }
 
-/* ---------- Kartu login muncul dari bawah ke atas ---------- */
 #layar > .login-kartu { animation: l-card-naik 1500ms var(--l-lambat) both; }
 
-/* Isian form ikut melambat (menimpa stagger cepat di desain.css). */
 #form-login > * { animation-duration: 900ms; animation-timing-function: var(--l-lambat); }
 #form-login > :nth-child(1) { animation-delay: 700ms; }
 #form-login > :nth-child(2) { animation-delay: 850ms; }
@@ -49,7 +42,6 @@
 #form-login > :nth-child(4) { animation-delay: 1100ms; }
 #form-login > :nth-child(5) { animation-delay: 1200ms; }
 
-/* ---------- Panel biru (desktop: samping, mobile: spanduk atas) ---------- */
 .login-logo { animation: l-dari-kiri 1500ms var(--l-lambat) 800ms both; }
 .login-nama { animation: l-dari-kiri 1500ms var(--l-lambat) 1100ms both; }
 .login-lencana { animation: l-naik-halus 1100ms var(--l-lambat) 1600ms both; }
@@ -77,7 +69,6 @@
 .login-denyut::before, .login-denyut::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #60a5fa; }
 .login-denyut::before { animation: l-denyut 1.8s ease-out infinite; }
 
-/* ---------- Judul: menyapu masuk kiri ke kanan (naik + fokus), gradien biru-putih terus bergerak ---------- */
 .gradien-teks {
   background-image: linear-gradient(90deg, #3b82f6 0%, #93c5fd 25%, #ffffff 50%, #93c5fd 75%, #3b82f6 100%);
   background-size: 200% 100%;
@@ -101,7 +92,6 @@
   animation: l-gradien 5s linear infinite, l-sapu var(--sapu-dur, 2400ms) var(--l-lambat) var(--sapu-tunda, 1800ms) both;
 }
 
-/* ---------- Tombol masuk ---------- */
 #form-login .login-kirim {
   background-image: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #2563eb 100%);
   background-size: 200% 100%;
@@ -119,7 +109,6 @@
   #form-login .login-kirim:hover:not(:disabled)::after { animation: l-kilap 700ms var(--ease-out); }
 }
 
-/* ---------- Login berhasil: tombol centang, kartu keluar, latar memburam, sambutan, lalu aplikasi masuk ---------- */
 @keyframes l-card-keluar { to { opacity: 0; transform: translateY(-48px) scale(0.96); } }
 @keyframes l-gambar { to { stroke-dashoffset: 0; } }
 @keyframes l-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
@@ -169,7 +158,6 @@
 .login-sambut-bar span { display: block; height: 100%; border-radius: inherit; transform-origin: left; background: linear-gradient(90deg, #3b82f6, #ffffff); animation: l-isi-bar 5000ms linear 2200ms both; }
 .login-sambut-info { font-size: 0.75rem; font-weight: 500; color: #cbd5e1; animation: l-naik-halus 1100ms var(--l-lambat) 2200ms both; }
 
-/* Aplikasi tampil dengan memudar halus setelah layar login ditutup. */
 #aplikasi:not(.hidden) { animation: l-app-masuk 600ms ease both; }
 
 @media (prefers-reduced-motion: reduce) {

@@ -19,7 +19,6 @@ export function persen(bagian, total) {
   return Math.max(0, Math.min(100, Math.round((bagian / total) * 100)))
 }
 
-/* Perkecil foto sebelum unggah: foto HP sering 3-6 MB, melebihi batas file. Hanya JPG/PNG; lainnya dikembalikan apa adanya. */
 export async function kompresGambar(file, { maksSisi = 1600, kualitas = 0.82, ambang = 900 * 1024 } = {}) {
   if (!/^image\/(jpeg|png)$/.test(file.type)) return file
   let bmp
@@ -34,7 +33,7 @@ export async function kompresGambar(file, { maksSisi = 1600, kualitas = 0.82, am
   kanvas.width = lebar
   kanvas.height = tinggi
   const ctx = kanvas.getContext('2d')
-  ctx.fillStyle = '#fff' // PNG transparan jadi putih, bukan hitam
+  ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, lebar, tinggi)
   ctx.drawImage(bmp, 0, 0, lebar, tinggi)
   bmp.close && bmp.close()

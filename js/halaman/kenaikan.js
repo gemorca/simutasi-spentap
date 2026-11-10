@@ -6,7 +6,6 @@ export function kabarkanPeriode(periode) {
   if (periode) window.dispatchEvent(new CustomEvent('periode-berubah', { detail: periode }))
 }
 
-// Semua penulisan periode menahan kontrol dan navigasi; kegagalan jaringan harus dimuat ulang sebelum mencoba lagi.
 export async function tulisPeriode(kerja) {
   if (document.documentElement.dataset.periodeMenulis === '1') throw new Error('Penulisan periode masih berlangsung.')
   const kontrol = [...document.querySelectorAll('button, input, select, textarea')].filter((el) => !el.disabled)
@@ -36,8 +35,6 @@ export function tautanBackup(url) {
   } catch { return '' }
 }
 
-// Pratinjau server selalu menjadi sumber token/ringkasan. Respons lama tidak boleh menimpa pilihan baru.
-// Alur layar: 1) siapkan kelas tujuan, 2) cocokkan kelas, 3) tandai siswa tinggal kelas (opsional), 4) konfirmasi.
 export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = false }) {
   let urutan = 0
   let pratinjau = null
@@ -47,7 +44,7 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
   let konfirmasi = false
   let pemulihan = false
   let pesan = ''
-  let buat = null // isian formulir pembuat kelas; bertahan saat layar digambar ulang
+  let buat = null
   const aktif = () => wadah.isConnected && masihAktif()
   const tombol = (aksi, label, nonaktif = false, bahaya = false, tambah = '') => `<button type="button" data-aksi="${aksi}" class="${bahaya ? KELAS.bahaya : tambah ? KELAS.tombol + ' ' + tambah : KELAS.tombol}"${nonaktif ? ' disabled' : ''}>${label}</button>`
   const daftarPesan = (judul, daftar, bahaya) => daftar?.length ? `<section role="${bahaya ? 'alert' : 'status'}" class="my-4 rounded-xl border p-4 ${bahaya ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}"><h3 class="font-bold">${judul}</h3><ul class="list-disc pl-5">${daftar.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></section>` : ''
@@ -57,7 +54,6 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
   const tingkatDari = (k) => uraiKelas(k.nama_kelas).tingkat
   const labelTingkat = (t) => String(pratinjau?.awalan_saran?.[t] || t).replace(/-$/, '')
 
-  // Kelompokkan daftar yang sudah terurut per tingkat. Nama yang tidak dikenali masuk kelompok terakhir.
   function kelompok(daftar) {
     const peta = new Map()
     for (const k of daftar) {
@@ -142,7 +138,6 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       }).join('')}</div></details>`
   }
 
-  // Saran tempat siswa tinggal kelas: kelas tujuan bertingkat sama dengan nama sama, atau urutan yang sama.
   function saranTinggal(kelasId) {
     const kelas = kelasUrut()
     const k = kelas.find((x) => String(x.id) === String(kelasId))
@@ -273,7 +268,6 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       kabarkanPeriode(hasil.periode)
       tampilPesan({ jenis: 'sukses', teks: hasil.pesan })
       buat = { ...buat, dari: '', sampai: '' }
-      // Pilihan kosong dibuang supaya server mencocokkan otomatis ke kelas yang baru dibuat.
       for (const kunci of ['peta', 'peta_tinggal']) {
         Object.keys(pilihan[kunci] || {}).forEach((id) => { if (!pilihan[kunci][id]) delete pilihan[kunci][id] })
       }
@@ -291,7 +285,6 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
     siap = false
     konfirmasi = false
     pesan = ''
-    // Jangan mengganti formulir saat permintaan berjalan: perubahan berikutnya tetap dapat dibuat.
     const status = wadah.querySelector('[data-status]')
     if (status) status.innerHTML = memuat('Memperbarui pratinjau...')
     wadah.querySelector('[data-konfirmasi]')?.remove()
@@ -301,7 +294,6 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       const hasil = await panggilApi('kenaikanPratinjau', { id: tahun.id, ...(!dariServer && pilihan ? { peta: { ...pilihan.peta }, peta_tinggal: { ...pilihan.peta_tinggal }, tinggal: [...pilihan.tinggal] } : {}) })
       if (!aktif() || nomor !== urutan) return
       pratinjau = hasil
-      // Pemulihan pembatalan harus memanggil kenaikanBatal, bukan melanjutkan kenaikan.
       if (hasil.membatalkan) batal = true
       pilihan = { peta: { ...hasil.peta }, peta_tinggal: { ...hasil.peta_tinggal }, tinggal: (hasil.tinggal || []).map(String) }
       siap = true

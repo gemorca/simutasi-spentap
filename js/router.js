@@ -13,7 +13,6 @@ export const HALAMAN = {
   profil: () => import('./halaman/profil.js'),
 }
 
-// Placeholder untuk halaman yang belum dibuat (kosong: semua halaman sudah ada).
 export const TAHAP = {}
 
 export function bacaHalaman() {

@@ -39,7 +39,6 @@ export function formPeriode(f, daftarTA = []) {
     </div></form>`
 }
 
-/* Periode diterapkan otomatis (AJAX) setiap pilihan berubah; tidak ada tombol terpisah. */
 export function pengendaliPeriode(wadah, saatTampil) {
   const s = { filter: filterAwal(), daftarTA: [] }
   const tanda = () => JSON.stringify(s.filter)
@@ -86,7 +85,6 @@ export function pengendaliPeriode(wadah, saatTampil) {
       s.daftarTA = daftarTA
       if (tahunAjaran) s.filter.tahun_ajaran = tahunAjaran
       terakhir = tanda()
-      // Gambar ulang hanya bila isi pilihan benar-benar berubah, supaya fokus pengguna tidak hilang.
       if (berubah || !wadah.querySelector('form')) {
         const aktif = wadah.contains(document.activeElement) ? document.activeElement.name : ''
         gambar(aktif)

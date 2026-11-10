@@ -1,11 +1,9 @@
-/* Foto profil pengguna yang sedang login. Satu-satunya tempat yang menyimpan, memuat, dan mengubah foto;
- * halaman lain memanggil isiAvatar() dan mendengarkan event 'foto-berubah'. */
 import { panggilApi } from './api.js'
 import { base64KeUrl, fileKeBase64 } from './util.js'
 import { inisial } from './ui.js'
 
-const UKURAN = 512          // foto disimpan persegi 512 x 512 px
-const BATAS_ASAL_MB = 10    // batas file asli sebelum diperkecil
+const UKURAN = 512
+const BATAS_ASAL_MB = 10
 
 let url = ''
 let muatan = null
@@ -22,13 +20,11 @@ function setUrl(baru) {
 
 export function urlFoto() { return url }
 
-/* Hapus foto dari memori (dipakai saat keluar). Tidak menyentuh server. */
 export function lupakanFoto() {
   muatan = null
   setUrl('')
 }
 
-/* Ambil foto dari server. Panggilan bersamaan dijadikan satu. */
 export function muatFotoProfil() {
   if (muatan) return muatan
   muatan = (async () => {
@@ -36,7 +32,6 @@ export function muatFotoProfil() {
       const data = await panggilApi('profilFotoAmbil')
       setUrl(data && data.ada ? base64KeUrl(data.mime, data.base64) : '')
     } catch {
-      /* foto gagal dimuat: tetap tampilkan inisial */
     } finally {
       muatan = null
     }
@@ -44,7 +39,6 @@ export function muatFotoProfil() {
   return muatan
 }
 
-/* Potong persegi dari tengah, perkecil, simpan sebagai JPG. */
 async function siapkanFoto(file) {
   if (!/^image\/(jpeg|png)$/.test(file.type)) throw new Error('Foto harus berformat JPG atau PNG.')
   if (file.size > BATAS_ASAL_MB * 1024 * 1024) throw new Error('Ukuran foto melebihi ' + BATAS_ASAL_MB + ' MB.')
@@ -59,7 +53,7 @@ async function siapkanFoto(file) {
   kanvas.width = ukuran
   kanvas.height = ukuran
   const ctx = kanvas.getContext('2d')
-  ctx.fillStyle = '#fff' // PNG transparan jadi putih, bukan hitam
+  ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, ukuran, ukuran)
   ctx.drawImage(bmp, (bmp.width - sisi) / 2, (bmp.height - sisi) / 2, sisi, sisi, 0, 0, ukuran, ukuran)
   bmp.close && bmp.close()
@@ -69,12 +63,11 @@ async function siapkanFoto(file) {
   return blob
 }
 
-/* Kembalikan hasil server ({ pesan, pengguna }); saatProgres diteruskan ke panggilApi. */
 export async function unggahFotoProfil(file, { saatProgres } = {}) {
   const blob = await siapkanFoto(file)
   const base64 = await fileKeBase64(blob)
   const hasil = await panggilApi('profilFotoUnggah', { nama_file: 'foto-profil.jpg', base64 }, { saatProgres })
-  setUrl(URL.createObjectURL(blob)) // pakai salinan lokal, tidak perlu unduh ulang
+  setUrl(URL.createObjectURL(blob))
   return hasil
 }
 
@@ -84,7 +77,6 @@ export async function hapusFotoProfil() {
   return hasil
 }
 
-/* Isi elemen avatar: foto bila ada, selain itu inisial nama. */
 export function isiAvatar(el, nama) {
   if (!el) return
   if (url) {

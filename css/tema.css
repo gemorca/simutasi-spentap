@@ -1,10 +1,4 @@
-/* Tema terang / gelap / sistem.
-   Bagian 1: pemilih tema di header, tiga tombol berjejer (berlaku di semua mode).
-   Bagian 2: palet gelap, aktif saat <html class="dark"> (diatur js/tema.js). Hanya layar: cetak dan PDF tetap terang.
-   Kelas Tailwind yang sudah tertulis di JS dipetakan ulang di sini, jadi tidak ada file halaman yang perlu diubah. */
 
-/* ---------- 1. Pemilih tema ---------- */
-/* Tiga tombol berjejer (segmented control). Indikator .tema-geser meluncur ke tombol aktif lewat --i (0, 1, 2) yang diisi js/tema.js. */
 .tema-grup {
   --lebar: 2rem;
   position: relative;
@@ -53,13 +47,11 @@
 .tema-opsi[aria-checked="true"] svg { transform: scale(1.12); }
 .tema-opsi:active svg { transform: scale(0.88); }
 
-/* Perpindahan tema seluruh halaman (View Transitions API): lapisan baru dibuka lingkaran dari titik klik (js/tema.js). */
 ::view-transition-old(root),
 ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 ::view-transition-old(root) { z-index: 1; }
 ::view-transition-new(root) { z-index: 2; }
 
-/* Cadangan tanpa View Transitions: warna berpindah halus. Indikator geser dikecualikan agar luncurannya tidak terputus. */
 @media screen and (prefers-reduced-motion: no-preference) {
   html.tema-ganti :where(*, *::before, *::after):not(.tema-geser) {
     transition: background-color 350ms ease, color 350ms ease, border-color 350ms ease, fill 350ms ease, stroke 350ms ease, box-shadow 350ms ease !important;
@@ -71,7 +63,6 @@
   .tema-opsi[aria-checked="true"] svg { transform: none; }
 }
 
-/* ---------- 2. Palet gelap ---------- */
 @media screen {
   html.dark {
     color-scheme: dark;
@@ -97,7 +88,6 @@
   html.dark input:disabled, html.dark select:disabled, html.dark textarea:disabled { background-color: var(--sub); color: #64748b; }
   html.dark .sapaan-nama { color: #f8fafc; }
 
-  /* Komponen buatan sendiri (komponen.css / desain.css). Ditulis sebelum pemetaan kelas supaya kelas Tailwind pada elemen yang sama tetap menang. */
   html.dark #samping { background-color: #080e1c; border-color: #17213a; }
   html.dark .dt-k,
   html.dark .ringkas-k { background-color: var(--surface); border-color: var(--line); box-shadow: var(--shadow-sm); }
@@ -125,7 +115,6 @@
     html.dark .bar-simpan { background: rgb(18 27 45 / 0.95); }
   }
 
-  /* Teks */
   html.dark .text-slate-900 { color: #f1f5f9; }
   html.dark .text-slate-800 { color: #e2e8f0; }
   html.dark .text-slate-700 { color: #cbd5e1; }
@@ -147,7 +136,6 @@
   html.dark .text-amber-700 { color: #fcd34d; }
   html.dark .text-amber-900 { color: #fde68a; }
 
-  /* Latar */
   html.dark .bg-white { background-color: var(--surface); }
   html.dark .bg-slate-50 { background-color: var(--sub); }
   html.dark .bg-slate-100 { background-color: var(--sub2); }
@@ -169,7 +157,6 @@
   html.dark .bg-rose-50\/80 { background-color: rgb(244 63 94 / 0.12); }
   html.dark .bg-amber-50\/40 { background-color: rgb(245 158 11 / 0.1); }
 
-  /* Garis */
   html.dark .border-slate-100 { border-color: #1f2a40; }
   html.dark .border-slate-200 { border-color: var(--line); }
   html.dark .border-slate-200\/80 { border-color: var(--line); }
@@ -184,7 +171,6 @@
   html.dark .border-amber-200 { border-color: rgb(251 191 36 / 0.35); }
   html.dark .border-amber-300 { border-color: rgb(251 191 36 / 0.50); }
 
-  /* Hover: tanpa ini kelas dasar di atas (spesifisitas lebih tinggi) menutup efek hover Tailwind */
   html.dark .hover\:bg-slate-100:hover { background-color: var(--sub2); }
   html.dark .hover\:bg-slate-50:hover { background-color: var(--sub); }
   html.dark .hover\:bg-slate-100\/80:hover { background-color: rgb(148 163 184 / 0.14); }
@@ -205,7 +191,6 @@
   html.dark .hover\:border-blue-200:hover { border-color: rgb(96 165 250 / 0.35); }
   html.dark .hover\:border-amber-200:hover { border-color: rgb(251 191 36 / 0.35); }
 
-  /* Varian lain yang bentrok dengan pemetaan di atas */
   html.dark .focus\:bg-white:focus { background-color: var(--surface); }
   html.dark .focus\:border-blue-600:focus,
   html.dark .focus-within\:border-blue-600:focus-within { border-color: #3b82f6; }
@@ -220,29 +205,24 @@
   html.dark .border-l-rose-600 { border-left-color: #e11d48; }
   html.dark .border-l-emerald-600 { border-left-color: #059669; }
 
-  /* Cincin */
   html.dark .ring-white { --tw-ring-color: #0b1220; }
   html.dark .ring-slate-100 { --tw-ring-color: #1f2a40; }
   html.dark .ring-black\/5 { --tw-ring-color: rgb(255 255 255 / 0.08); }
   html.dark .ring-amber-300 { --tw-ring-color: rgb(251 191 36 / 0.45); }
 
-  /* Grafik SVG */
   html.dark .fill-slate-800 { fill: #e2e8f0; }
   html.dark .fill-slate-500 { fill: #94a3b8; }
   html.dark .stroke-slate-200 { stroke: #26334a; }
   html.dark .fill-blue-600 { fill: #3b82f6; }
   html.dark .fill-blue-300 { fill: #2f5597; }
 
-  /* Status galat bertanda !important dari JS */
   html.dark .\!bg-rose-50\/60 { background-color: rgb(244 63 94 / 0.14) !important; }
   html.dark .\!text-rose-600 { color: #fb7185 !important; }
 
-  /* Komponen yang warnanya diatur CSS sendiri tetapi elemennya juga membawa kelas warna */
   html.dark .notif-tombol.notif-aktif { color: #fb7185; background-color: rgb(244 63 94 / 0.14); }
   html.dark .progres-selesai [data-label] { color: #6ee7b7; }
   html.dark .progres-galat [data-label] { color: #fda4af; }
 
-  /* Pemilih tema */
   html.dark .tema-grup { background-color: var(--sub); border-color: var(--line); }
   html.dark .tema-opsi { color: #94a3b8; }
   html.dark .tema-opsi:hover { color: #f8fafc; }

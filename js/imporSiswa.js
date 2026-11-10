@@ -90,7 +90,7 @@ export function bukaImporSiswa({ onSelesai } = {}) {
   d.className = 'dlg dlg-impor rounded-2xl border border-slate-200 p-0 backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm shadow-2xl'
   document.body.appendChild(d)
 
-  let status = 'pilih' // pilih | memeriksa | pratinjau | proses | selesai
+  let status = 'pilih'
   let namaFile = ''
   let baris = []
   let periksa = null
