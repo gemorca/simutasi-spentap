@@ -214,12 +214,12 @@ function gambarKop(doc, sekolah, logoSekolah, logoBonbol) {
   // Pilih SATU pasang di bawah. Aktifkan dengan menghapus tanda // di depannya, lalu beri // pada pasangan lain.
 
   // kalau mau logo-sekolah kiri, logo-bonbol kanan, pakai ini:
-  // gambarLogo(doc, logoSekolah, PDF_MARGIN, y)
-  // gambarLogo(doc, logoBonbol, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
+  gambarLogo(doc, logoSekolah, PDF_MARGIN, y)
+  gambarLogo(doc, logoBonbol, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
 
   // kalau mau logo-bonbol kiri, logo-sekolah kanan, pakai ini:
-  gambarLogo(doc, logoBonbol, PDF_MARGIN, y)
-  gambarLogo(doc, logoSekolah, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
+  //gambarLogo(doc, logoBonbol, PDF_MARGIN, y)
+  //gambarLogo(doc, logoSekolah, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
 
   doc.setTextColor(...PDF_WARNA.navy)
   doc.setFont(PDF_FONT, 'bold')

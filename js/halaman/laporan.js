@@ -140,12 +140,12 @@ const HTML_LOGO_BONBOL = `<div class="h-14 w-14 rounded-2xl bg-slate-100 border 
 // Pilih SATU pasang di bawah. Aktifkan dengan menghapus tanda // di depannya, lalu beri // pada pasangan lain.
 
 // kalau mau logo-sekolah kiri, logo-bonbol kanan, pakai ini:
-// const LOGO_KIRI = HTML_LOGO_SEKOLAH
-// const LOGO_KANAN = HTML_LOGO_BONBOL
+const LOGO_KIRI = HTML_LOGO_SEKOLAH
+const LOGO_KANAN = HTML_LOGO_BONBOL
 
 // kalau mau logo-bonbol kiri, logo-sekolah kanan, pakai ini:
-const LOGO_KIRI = HTML_LOGO_BONBOL
-const LOGO_KANAN = HTML_LOGO_SEKOLAH
+//const LOGO_KIRI = HTML_LOGO_BONBOL
+//const LOGO_KANAN = HTML_LOGO_SEKOLAH
 
 export function render(wadah) {
   wadah.innerHTML = `<div class="mx-auto max-w-5xl">
