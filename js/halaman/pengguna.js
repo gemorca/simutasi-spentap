@@ -1,8 +1,8 @@
 import { panggilApi } from '../api.js'
 import {
-  esc, KELAS, IKON, memuat, judulHalaman, medan, tandaiGalat, bersihkanGalat, bacaForm, barSimpan, sibukSimpan,
+  esc, KELAS, IKON, sibukTombol, memuat, judulHalaman, medan, tandaiGalat, bersihkanGalat, bacaForm, barSimpan, sibukSimpan,
   galatMuat, tabel, lencana, isiUlang, pasangAksi, pilihanMassal, barAlat, barAksiBawah, ringkasanMassal,
-  dialogKonfirmasi, dialogPasswordBaru, tampilPesan, notif, spinner,
+  dialogKonfirmasi, dialogPasswordBaru, tampilPesan, notif,
 } from '../ui.js'
 import { NAMA_PERAN } from '../menu.js'
 import { periksa, wajib, minPanjang } from '../validasi.js'
@@ -105,12 +105,6 @@ export function render(wadah, saya) {
     pasangAksi(wadah, PETA_DAFTAR)
     if (segar) return muat()
     gambarIsi()
-  }
-
-  function sibukTombol(el, sibuk) {
-    if (!el || !el.isConnected) return
-    if (sibuk) { el.dataset.html = el.innerHTML; el.innerHTML = spinner('h-[18px] w-[18px]'); el.disabled = true }
-    else { el.innerHTML = el.dataset.html || el.innerHTML; el.disabled = false }
   }
 
   async function hapus(u, el) {

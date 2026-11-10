@@ -154,7 +154,7 @@ export function render(wadah, pengguna) {
             const file = berkas.files && berkas.files[0]
             berkas.value = ''
             if (!file) return
-            sibukFoto(true, 'Mengunggah...')
+            sibukFoto(true, 'Memproses...')
             const bar = barProgres(wadahBar, 'Memproses foto...')
             bar.naik(3, 'Memproses foto...')
             try {
@@ -183,7 +183,7 @@ export function render(wadah, pengguna) {
                 bahaya: true,
             })
             if (!ya) return
-            sibukFoto(true, 'Menghapus...')
+            sibukFoto(true, 'Memproses...')
             try {
                 const hasil = await hapusFotoProfil()
                 adaFoto = false

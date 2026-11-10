@@ -32,6 +32,34 @@ export function spinner(kelas = 'h-4 w-4') {
   return `<svg class="${esc(kelas)} shrink-0" viewBox="0 0 24 24" fill="none" role="img" aria-label="Memproses"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.75s" repeatCount="indefinite"/></path></svg>`
 }
 
+/* Status sibuk tombol (satu tempat untuk semua halaman). Tampilan sama seperti tombol Masuk: spinner + "Memproses...".
+   Idempoten: memanggil dua kali tidak merusak isi asli. Tombol ikon (kelas aksi-ikon) hanya menampilkan spinner. */
+const KEADAAN_TOMBOL = new WeakMap()
+export function sibukTombol(el, sibuk, teks = 'Memproses...') {
+  if (!el || !el.isConnected) return
+  const k = KEADAAN_TOMBOL.get(el)
+  if (sibuk) {
+    if (k) return
+    KEADAAN_TOMBOL.set(el, { asli: el.innerHTML, mati: el.disabled })
+    const ikonSaja = el.classList.contains('aksi-ikon')
+    el.innerHTML = ikonSaja ? spinner('h-[18px] w-[18px]') : spinner() + '<span>' + esc(teks) + '</span>'
+    el.disabled = true
+    el.setAttribute('aria-busy', 'true')
+  } else {
+    if (!k) return
+    KEADAAN_TOMBOL.delete(el)
+    el.innerHTML = k.asli
+    el.disabled = k.mati
+    el.removeAttribute('aria-busy')
+  }
+}
+
+/* Jalankan kerja async dengan tombol sibuk; selalu dipulihkan di akhir. */
+export async function denganSibuk(el, kerja, teks) {
+  sibukTombol(el, true, teks)
+  try { return await kerja() } finally { sibukTombol(el, false) }
+}
+
 /* Bar progres unggah di bawah elemen `wadah` (mis. kartu dokumen). Nilai hanya naik; 100% hanya lewat selesai(), setelah server membalas.
    Byte terkirim dipetakan ke 5-90%; selama server memproses, bar merayap pelan sampai maks 99%. */
 export function barProgres(wadah, label = 'Menyiapkan...') {
@@ -161,9 +189,22 @@ function buatDialog(isi) {
   return d
 }
 
+/* Tombol yang menunggu hasil async tidak boleh berputar saat dialog konfirmasi terbuka (pengguna masih memutuskan).
+   Spinner dilepas saat dialog dibuka dan dipasang lagi saat dialog ditutup, jika kerja masih berjalan. */
+const MENUNGGU = new Set()
+let dialogTerbuka = 0
+
 function bukaModal(d) {
   return new Promise((selesai) => {
-    d.addEventListener('close', () => { const v = d.returnValue; d.remove(); selesai(v) }, { once: true })
+    dialogTerbuka++
+    MENUNGGU.forEach((el) => sibukTombol(el, false))
+    d.addEventListener('close', () => {
+      const v = d.returnValue
+      d.remove()
+      dialogTerbuka = Math.max(0, dialogTerbuka - 1)
+      if (!dialogTerbuka) MENUNGGU.forEach((el) => sibukTombol(el, true))
+      selesai(v)
+    }, { once: true })
     d.showModal()
   })
 }
@@ -384,13 +425,13 @@ export function barSimpan({ teks = 'Simpan' } = {}) {
     <button type="submit" data-simpan class="${KELAS.utama}">${esc(teks)}</button></div>`
 }
 
-export function sibukSimpan(form, sibuk, teks = 'Simpan') {
+export function sibukSimpan(form, sibuk, teks = 'Simpan', teksSibuk = 'Memproses...') {
   const simpan = form.querySelector('[data-simpan]')
   const batal = form.querySelector('[data-batal]')
   if (simpan) {
     simpan.disabled = sibuk
     simpan.setAttribute('aria-busy', String(sibuk))
-    simpan.innerHTML = sibuk ? spinner() + '<span>Menyimpan...</span>' : esc(teks)
+    simpan.innerHTML = sibuk ? spinner() + '<span>' + esc(teksSibuk) + '</span>' : esc(teks)
   }
   if (batal) batal.disabled = sibuk
 }
@@ -493,7 +534,15 @@ export function pasangAksi(wadah, peta) {
     const el = e.target.closest('[data-aksi]')
     if (!el || !wadah.contains(el) || el.disabled) return
     const f = PETA_AKSI.get(wadah)[el.dataset.aksi]
-    if (f) f(el.dataset.id, el)
+    if (!f) return
+    const hasil = f(el.dataset.id, el)
+    // Handler async: tombol berubah jadi "Memproses..." sampai selesai, supaya pengguna tahu sedang berjalan.
+    if (hasil && typeof hasil.then === 'function') {
+      MENUNGGU.add(el)
+      if (!dialogTerbuka) sibukTombol(el, true)
+      const lepas = () => { MENUNGGU.delete(el); sibukTombol(el, false) }
+      hasil.then(lepas, lepas)
+    }
   })
   wadah.addEventListener('change', (e) => {
     const el = e.target
@@ -539,7 +588,7 @@ export function barAksiBawah({ pilihan, satuan, sibuk = false }) {
   if (!pilihan.aktif) return ''
   return `<div role="region" aria-label="Aksi untuk ${esc(satuan)} terpilih" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
     <span aria-live="polite" class="text-sm font-semibold text-slate-700"><strong>${pilihan.jumlah}</strong> ${esc(satuan)} dipilih</span>
-    <button type="button" data-aksi="hapus-terpilih" class="${KELAS.bahaya}"${sibuk || pilihan.jumlah === 0 ? ' disabled' : ''}>${sibuk ? spinner() + '<span>Menghapus...</span>' : 'Hapus terpilih'}</button></div>`
+    <button type="button" data-aksi="hapus-terpilih" class="${KELAS.bahaya}"${sibuk || pilihan.jumlah === 0 ? ' disabled' : ''}>${sibuk ? spinner() + '<span>Memproses...</span>' : 'Hapus terpilih'}</button></div>`
 }
 
 export function ringkasanMassal(hasil, satuan) {

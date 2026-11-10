@@ -1,5 +1,5 @@
 import { panggilApi } from '../api.js'
-import { esc, KELAS, memuat, judulHalaman, medan, pasangAksi, tampilPesan } from '../ui.js'
+import { esc, KELAS, memuat, judulHalaman, medan, pasangAksi, tampilPesan, sibukTombol } from '../ui.js'
 import { uraiKelas, urutKelas } from '../urutKelas.js'
 
 export function kabarkanPeriode(periode) {
@@ -177,7 +177,7 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
     }
     pilihan = { ...pilihan, peta, peta_tinggal: tinggal }
     konfirmasi = false
-    muat(false)
+    return muat(false)
   }
 
   function gambar() {
@@ -215,7 +215,7 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       </section>` : tombol('segar', 'Muat ulang pratinjau'))
     pasangAksi(wadah, {
       kembali: () => { if (!menulis) { urutan++; kembali() } },
-      segar: () => { if (!menulis) muat(pemulihan || Boolean(pratinjau?.berjalan)) },
+      segar: () => { if (!menulis) return muat(pemulihan || Boolean(pratinjau?.berjalan)) },
       konfirmasi: () => { if (boleh && !menulis) { konfirmasi = true; gambar(); wadah.querySelector('[name="konfirmasi"]')?.focus() } },
       'cocok-nama': () => cocokkan('nama'),
       'cocok-urutan': () => cocokkan('urutan'),
@@ -263,8 +263,10 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       tampilPesan({ jenis: 'galat', teks: 'Isi awalan nama dan nilai Dari terlebih dahulu.' })
       return
     }
+    const tombolBuat = e.currentTarget.querySelector('button[type="submit"]')
     menulis = true
     ++urutan
+    sibukTombol(tombolBuat, true)
     let berhasil = false
     try {
       const hasil = await panggilApi('kenaikanBuatKelas', { id: tahun.id, tingkat: Number(buat.tingkat), awalan: buat.awalan.trim(), dari: buat.dari.trim(), sampai: buat.sampai.trim(), kuota: Number(buat.kuota) })
@@ -278,7 +280,7 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       berhasil = true
     } catch (err) {
       tampilPesan({ jenis: 'galat', teks: err.message })
-    } finally { menulis = false }
+    } finally { menulis = false; sibukTombol(tombolBuat, false) }
     if (!aktif()) return
     if (berhasil) muat(false)
     else gambar()
@@ -321,8 +323,10 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       e.currentTarget.elements.konfirmasi.focus()
       return
     }
+    const tombolJalan = e.currentTarget.querySelector('button[type="submit"]')
     menulis = true
     ++urutan
+    sibukTombol(tombolJalan, true)
     try {
       const hasil = await tulisPeriode(() => panggilApi(batal ? 'kenaikanBatal' : 'kenaikanJalankan', { id: tahun.id, konfirmasi: teks, ...(!batal ? { ...pilihan, token: pratinjau.token } : {}) }))
       kabarkanPeriode(hasil.periode)
@@ -335,7 +339,7 @@ export function tampilKenaikan(wadah, tahun, { kembali, masihAktif, batal = fals
       pemulihan = true
       pesan = err.message + ' Status server mungkin sudah berubah. Muat ulang pratinjau untuk memeriksa backup dan melanjutkan proses tersimpan; jangan menjalankan rencana lama.'
       gambar()
-    } finally { menulis = false }
+    } finally { menulis = false; sibukTombol(tombolJalan, false) }
   }
 
   gambar()

@@ -1,12 +1,18 @@
 import { panggilApi } from '../api.js'
 import {
   esc, KELAS, IKON, memuat, judulHalaman, medan, tandaiGalat, bersihkanGalat, bacaForm, barSimpan, sibukSimpan,
-  galatMuat, tabel, isiUlang, pasangAksi, tampilPesan, notif, tandaiMemuat, lencana,
+  galatMuat, tabel, isiUlang, pasangAksi, tampilPesan, notif, tandaiMemuat, lencana, sibukTombol,
 } from '../ui.js'
 import { periksa, wajib } from '../validasi.js'
 import { tampilKenaikan, tulisPeriode, kabarkanPeriode, tautanBackup } from './kenaikan.js'
 
 const IK_TA = 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2'
+// Ikon aksi khusus tahun ajaran (gaya garis, sama seperti IKON di ui.js).
+const IKON_TA = {
+  naik: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM16 12l-4-4-4 4M12 16V8', // panah naik dalam lingkaran
+  lanjut: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM10 8l6 4-6 4Z', // putar/lanjutkan
+  batal: 'M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11', // urungkan
+}
 const KOLOM_FORM = ['tahun_ajaran', 'ganjil_mulai', 'ganjil_selesai', 'genap_mulai', 'genap_selesai']
 const KOLOM_TANGGAL = KOLOM_FORM.slice(1)
 const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
@@ -141,8 +147,8 @@ export function render(wadah, pengguna) {
       baris: data.daftar,
       aksi: (r) => [
         { aksi: 'ubah', label: 'Ubah', d: IKON.ubah, nonaktif: r.kenaikan_status === 'berjalan' },
-        ...(r.kenaikan_status !== 'selesai' ? [{ aksi: 'kenaikan', label: r.kenaikan_status === 'berjalan' ? 'Lanjutkan kenaikan kelas' : 'Naikkan kelas', d: IKON.aktif }] : []),
-        ...(r.bisa_batal ? [{ aksi: 'batal-kenaikan', label: 'Batalkan kenaikan kelas', d: IKON.tutup, bahaya: true }] : []),
+        ...(r.kenaikan_status !== 'selesai' ? [{ aksi: 'kenaikan', label: r.kenaikan_status === 'berjalan' ? 'Lanjutkan kenaikan kelas' : 'Naikkan kelas', d: r.kenaikan_status === 'berjalan' ? IKON_TA.lanjut : IKON_TA.naik, nada: 'biru' }] : []),
+        ...(r.bisa_batal ? [{ aksi: 'batal-kenaikan', label: 'Batalkan kenaikan kelas', d: IKON_TA.batal, nada: 'amber' }] : []),
         ...(r.bisa_hapus ? [{ aksi: 'hapus', label: 'Hapus tahun ajaran', d: IKON.hapus, bahaya: true }] : []),
       ],
       kosong: {
@@ -234,7 +240,7 @@ export function render(wadah, pengguna) {
         tandaiGalat(form, { konfirmasi: 'Tahun ajaran harus sama persis.' })
         return
       }
-      tombolHapus.disabled = true
+      sibukTombol(tombolHapus, true)
       try {
         const hasil = await tulisPeriode(() => panggilApi('tahunAjaranHapus', { id: r.id, konfirmasi: form.elements.konfirmasi.value }))
         kabarkanPeriode(hasil.periode)
@@ -243,7 +249,7 @@ export function render(wadah, pengguna) {
         tampilDaftar(true)
       } catch (err) {
         if (saya !== layar || !wadah.isConnected) return
-        tombolHapus.disabled = false
+        sibukTombol(tombolHapus, false)
         tampilPesan({ jenis: 'galat', teks: err.message })
       }
     })

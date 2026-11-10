@@ -78,6 +78,6 @@ export function render(wadah) {
     }
   }
 
-  pasangAksi(isi, { 'muat-ulang': () => { isi.innerHTML = memuat('Memuat pengaturan...'); muat() } })
+  pasangAksi(isi, { 'muat-ulang': () => { isi.innerHTML = memuat('Memuat pengaturan...'); return muat() } })
   muat()
 }

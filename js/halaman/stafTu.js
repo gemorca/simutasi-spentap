@@ -119,13 +119,10 @@ export function render(wadah) {
 
   async function lihat(id, el) {
     if (!id || (el && el.disabled)) return
-    if (el) el.disabled = true
     try {
       bukaAktivitas(await panggilApi('stafTuAktivitas', { id }))
     } catch (err) {
       isi.insertAdjacentHTML('afterbegin', galatMuat(err.message))
-    } finally {
-      if (el && el.isConnected) el.disabled = false
     }
   }
 

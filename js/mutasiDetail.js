@@ -660,7 +660,7 @@ export function renderDetail(wadah, { id, pemilik = '', tabAwal = 'data', hanyaB
     tolak,
     lihat,
     'hapus-lampiran': hapusLampiran,
-    'hapus-mutasi': (_, el) => { tutupMenu(el); hapusMutasi() },
+    'hapus-mutasi': (_, el) => { tutupMenu(el); return hapusMutasi() },
     tab: (idTab) => { tab = idTab; simpan(); gambar() },
     'semua-riwayat': () => { semuaRiwayat = !semuaRiwayat; gambar() },
   })
