@@ -141,9 +141,9 @@ export function render(wadah, pengguna) {
       baris: data.daftar,
       aksi: (r) => [
         { aksi: 'ubah', label: 'Ubah', d: IKON.ubah, nonaktif: r.kenaikan_status === 'berjalan' },
-        ...(r.kenaikan_status === 'belum' ? [{ aksi: 'salin-kelas', label: 'Buat kelas tahun ajaran baru', d: IKON.salin }] : []),
-        ...(r.kenaikan_status !== 'selesai' ? [{ aksi: 'kenaikan', label: r.kenaikan_status === 'berjalan' ? 'Lanjutkan kenaikan kelas' : 'Pratinjau kenaikan kelas', d: IKON.aktif }] : []),
+        ...(r.kenaikan_status !== 'selesai' ? [{ aksi: 'kenaikan', label: r.kenaikan_status === 'berjalan' ? 'Lanjutkan kenaikan kelas' : 'Naikkan kelas', d: IKON.aktif }] : []),
         ...(r.bisa_batal ? [{ aksi: 'batal-kenaikan', label: 'Batalkan kenaikan kelas', d: IKON.tutup, bahaya: true }] : []),
+        ...(r.bisa_hapus ? [{ aksi: 'hapus', label: 'Hapus tahun ajaran', d: IKON.hapus, bahaya: true }] : []),
       ],
       kosong: {
         ikon: IK_TA,
@@ -189,9 +189,9 @@ export function render(wadah, pengguna) {
   const PETA_DAFTAR = {
     tambah: () => tampilForm(null),
     ubah: (id) => { const r = cari(id); if (r && r.kenaikan_status !== 'berjalan') tampilForm(r) },
-    'salin-kelas': (id) => salinKelas(id),
     kenaikan: (id) => bukaKenaikan(id),
     'batal-kenaikan': (id) => bukaKenaikan(id, true),
+    hapus: (id) => { const r = cari(id); if (r && r.bisa_hapus) tampilHapus(r) },
     'muat-ulang': () => muat(),
   }
 
@@ -202,17 +202,52 @@ export function render(wadah, pengguna) {
     tampilKenaikan(wadah, tahun, { batal, kembali: () => tampilDaftar(true), masihAktif: () => saya === layar })
   }
 
-  async function salinKelas(id) {
-    const tahun = cari(id)
-    if (!tahun || tahun.kenaikan_status !== 'belum') return
-    try {
-      const hasil = await tulisPeriode(() => panggilApi('tahunAjaranSalinKelas', { id }))
-      kabarkanPeriode(hasil.periode)
-      tampilPesan({ jenis: 'sukses', teks: (hasil.pesan || 'Kelas berhasil disalin.') + ' Kelas tingkat awal dibuat manual di Kelola Kelas.' })
-    } catch (err) {
-      tampilPesan({ jenis: 'galat', teks: err.message + ' Daftar dimuat ulang untuk memeriksa hasil penyalinan.' })
-    }
-    if (wadah.isConnected) await muat()
+  function tampilHapus(r) {
+    const saya = ++layar
+    const jumlah = Number(r.jumlah_kelas) || 0
+    wadah.innerHTML = judulHalaman({
+      judul: 'Hapus Tahun Ajaran',
+      sub: `Tahun ajaran ${r.tahun_ajaran}`,
+      aksi: `<button type="button" data-aksi="kembali" class="${KELAS.tombol}">Kembali</button>`,
+    }) + `<form novalidate class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+      <section role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4">
+        <h3 class="font-bold">Penghapusan tidak dapat dibatalkan</h3>
+        <ul class="mt-2 list-disc pl-5 text-sm">
+          <li>Tahun ajaran <strong>${esc(r.tahun_ajaran)}</strong> dihapus${jumlah ? ` beserta ${jumlah} kelasnya` : ''}.</li>
+          <li>Server menolak bila ada kelas yang masih berisi siswa, mutasi, atau riwayat kenaikan.</li>
+          <li>Sisa percobaan kenaikan yang sudah dibatalkan ikut dibersihkan.</li>
+        </ul>
+      </section>
+      <p>Ketik persis <strong>${esc(r.tahun_ajaran)}</strong> untuk menghapus.</p>
+      ${medan({ label: 'Konfirmasi tahun ajaran', nama: 'konfirmasi', wajib: true, atribut: { autocomplete: 'off' } })}
+      <button type="submit" class="${KELAS.bahaya}">Hapus tahun ajaran</button>
+    </form>`
+    window.scrollTo(0, 0)
+    pasangAksi(wadah, { kembali: () => tampilDaftar(false) })
+    const form = wadah.querySelector('form')
+    form.addEventListener('input', (e) => { if (e.target.name) bersihkanGalat(form, e.target.name) })
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const tombolHapus = form.querySelector('button[type="submit"]')
+      if (tombolHapus.disabled) return
+      if (form.elements.konfirmasi.value !== r.tahun_ajaran) {
+        tandaiGalat(form, { konfirmasi: 'Tahun ajaran harus sama persis.' })
+        return
+      }
+      tombolHapus.disabled = true
+      try {
+        const hasil = await tulisPeriode(() => panggilApi('tahunAjaranHapus', { id: r.id, konfirmasi: form.elements.konfirmasi.value }))
+        kabarkanPeriode(hasil.periode)
+        tampilPesan({ jenis: 'sukses', teks: hasil.pesan || 'Tahun ajaran dihapus.' })
+        if (saya !== layar || !wadah.isConnected) return
+        tampilDaftar(true)
+      } catch (err) {
+        if (saya !== layar || !wadah.isConnected) return
+        tombolHapus.disabled = false
+        tampilPesan({ jenis: 'galat', teks: err.message })
+      }
+    })
+    form.elements.konfirmasi.focus()
   }
 
   function tampilForm(r) {
