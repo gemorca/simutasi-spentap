@@ -1,11 +1,14 @@
 import { NAMA_BULAN } from './periode.js'
 import { muatJspdf } from './pustaka.js'
+import { urutKelas } from './urutKelas.js'
 
 const PDF_FONT = 'times'
 const PDF_MARGIN = 15
 const PDF_KOTA = 'Tapa'
 const PDF_LOGO_KOTAK = 20
 const PDF_TIMEOUT_GAMBAR = 6000
+const LOGO_SEKOLAH = ['assets/logo-sekolah.png']
+const LOGO_BONBOL = ['assets/logo-bonbol.png']
 const PDF_MAKS_KOLOM_PORTRAIT = 8
 const PDF_UKURAN = { judul: 13, isi: 10, tabel: 9, tabelPadat: 8.5, kecil: 8 }
 const PDF_WARNA = {
@@ -192,19 +195,24 @@ function pastikanRuang(doc, y, tinggi) {
   return y
 }
 
-function gambarKop(doc, sekolah, logo) {
+function gambarLogo(doc, logo, x, y) {
+  if (!logo) return
+  const skala = Math.min(PDF_LOGO_KOTAK / logo.lebar, PDF_LOGO_KOTAK / logo.tinggi)
+  const w = logo.lebar * skala
+  const h = logo.tinggi * skala
+  doc.addImage(logo.data, 'PNG', x + (PDF_LOGO_KOTAK - w) / 2, y + (PDF_LOGO_KOTAK - h) / 2, w, h)
+}
+
+/* Kop surat: logo sekolah di kiri, logo Bonbol di kanan, teks di tengah. */
+function gambarKop(doc, sekolah, logoKiri, logoKanan) {
   const { lebar } = halaman(doc)
   const xTeks = PDF_MARGIN + PDF_LOGO_KOTAK + 4
   const lebarTeks = lebar - 2 * xTeks
   const pusat = lebar / 2
   let y = PDF_MARGIN
 
-  if (logo) {
-    const skala = Math.min(PDF_LOGO_KOTAK / logo.lebar, PDF_LOGO_KOTAK / logo.tinggi)
-    const w = logo.lebar * skala
-    const h = logo.tinggi * skala
-    doc.addImage(logo.data, 'PNG', PDF_MARGIN + (PDF_LOGO_KOTAK - w) / 2, y + (PDF_LOGO_KOTAK - h) / 2, w, h)
-  }
+  gambarLogo(doc, logoKiri, PDF_MARGIN, y)
+  gambarLogo(doc, logoKanan, lebar - PDF_MARGIN - PDF_LOGO_KOTAK, y)
 
   doc.setTextColor(...PDF_WARNA.navy)
   doc.setFont(PDF_FONT, 'bold')
@@ -387,20 +395,21 @@ export async function unduhPdfRekap(lap) {
   const sekolah = lap.sekolah || {}
   const periode = lap.periode || {}
   const ringkasan = lap.ringkasan || {}
-  const perKelas = lap.per_kelas || []
+  const perKelas = [...(lap.per_kelas || [])].sort(urutKelas)
   const daftar = lap.daftar || []
 
   const kepalaDaftar = ['No', 'Nama Siswa', 'NISN/NIS', 'JK', 'Kelas', 'Tanggal Masuk', 'Sekolah Asal', 'Alasan']
 
-  const [jsPDF, logo] = await Promise.all([
+  const [jsPDF, logoKiri, logoKanan] = await Promise.all([
     muatJspdf(),
-    muatGambar(['assets/logo-sekolah.png']),
+    muatGambar(LOGO_SEKOLAH),
+    muatGambar(LOGO_BONBOL),
   ])
 
   const doc = new jsPDF({ orientation: orientasiOtomatis(kepalaDaftar.length), unit: 'mm', format: 'a4' })
   doc.setProperties({ title: 'Rekapitulasi Mutasi Siswa Masuk ' + bersihkan(periode.label) })
 
-  let y = gambarKop(doc, sekolah, logo)
+  let y = gambarKop(doc, sekolah, logoKiri, logoKanan)
   y = gambarJudul(doc, y, 'Rekapitulasi Mutasi Siswa Masuk')
   y = gambarKeterangan(doc, y, [
     ['Periode', `<b>${aman(periode.label)}</b>`],
@@ -474,16 +483,17 @@ export async function unduhPdfSurat(data) {
   const jk = String(siswa.jenis_kelamin).toUpperCase() === 'L' ? 'Laki-laki'
     : String(siswa.jenis_kelamin).toUpperCase() === 'P' ? 'Perempuan' : bersihkan(siswa.jenis_kelamin)
 
-  const [jsPDF, logo] = await Promise.all([
+  const [jsPDF, logoKiri, logoKanan] = await Promise.all([
     muatJspdf(),
-    muatGambar(['assets/logo-sekolah.png']),
+    muatGambar(LOGO_SEKOLAH),
+    muatGambar(LOGO_BONBOL),
   ])
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   doc.setProperties({ title: 'Surat Keterangan ' + bersihkan(siswa.nama) })
   const { lebar } = halaman(doc)
   const area = lebar - 2 * PDF_MARGIN
 
-  let y = gambarKop(doc, sekolah, logo)
+  let y = gambarKop(doc, sekolah, logoKiri, logoKanan)
   y = gambarJudul(doc, y + 2, 'Surat Keterangan')
   doc.setFont(PDF_FONT, 'normal')
   doc.setFontSize(PDF_UKURAN.isi)

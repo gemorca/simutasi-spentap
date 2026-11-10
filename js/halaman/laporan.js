@@ -4,6 +4,7 @@ import { parameterPeriode, pengendaliPeriode } from '../periode.js'
 import { persen } from '../util.js'
 import { unduhExcel } from '../excel.js'
 import { unduhPdfRekap, tanggalIndonesia } from '../pdf.js'
+import { urutKelas } from '../urutKelas.js'
 
 function teksSisa(sisa) {
   if (sisa < 0) return 'Lebih ' + Math.abs(sisa)
@@ -139,7 +140,10 @@ export function render(wadah) {
         <h2 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Laporan Rekapitulasi</h2>
         <p class="text-sm font-medium text-slate-500">Data siswa masuk yang telah disetujui Kepala Sekolah</p>
       </div>
-      <div class="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto sm:gap-2.5 print:hidden">
+      <div class="h-14 w-14 rounded-2xl bg-slate-100 border border-slate-200 grid place-items-center shrink-0">
+        <img src="assets/logo-bonbol.png" alt="Logo Bonbol" width="48" height="48" class="h-10 w-10 object-contain" onerror="this.closest('div').style.display='none'">
+      </div>
+      <div class="grid w-full grid-cols-3 gap-2 sm:flex sm:w-full sm:justify-end sm:gap-2.5 print:hidden">
         <button type="button" data-pdf class="${KELAS.utama} !px-2 sm:!px-4" disabled>Unduh PDF</button>
         <button type="button" data-excel class="${KELAS.tombol} !px-2 sm:!px-4" disabled>Unduh Excel</button>
         <button type="button" data-cetak class="${KELAS.tombol} !px-2 sm:!px-4" disabled>Cetak</button>
@@ -176,6 +180,7 @@ export function render(wadah) {
     try {
       const hasil = await panggilApi('laporanRekap', parameterPeriode(periode.s.filter))
       if (saya !== urutan || !isi.isConnected) return
+      hasil.per_kelas = [...(hasil.per_kelas || [])].sort(urutKelas)
       lap = hasil
       periode.setDaftar(hasil.daftar_tahun_ajaran, hasil.periode.tahun_ajaran)
       wadah.querySelector('[data-sekolah]').textContent = hasil.sekolah.nama
