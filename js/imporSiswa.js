@@ -87,7 +87,7 @@ async function bacaBerkas(file) {
 
 export function bukaImporSiswa({ onSelesai } = {}) {
   const d = document.createElement('dialog')
-  d.className = 'dlg dlg-impor rounded-2xl border border-slate-200 p-0 backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm shadow-2xl'
+  d.className = 'dlg dlg-impor overflow-x-hidden rounded-2xl border border-slate-200 p-0 backdrop:bg-slate-900/60 backdrop:backdrop-blur-sm shadow-2xl'
   document.body.appendChild(d)
 
   let status = 'pilih'
@@ -107,10 +107,10 @@ export function bukaImporSiswa({ onSelesai } = {}) {
   }
   const lepasBar = () => { if (bar) bar.hapus(); bar = null }
 
-  const ringkas = (n, label, kelas) => `<div class="rounded-xl border px-3 py-2 ${kelas}"><div class="text-lg font-bold">${esc(n)}</div><div class="text-xs font-semibold">${esc(label)}</div></div>`
+  const ringkas = (n, label, kelas) => `<div class="min-w-0 rounded-xl border px-3 py-2 ${kelas}"><div class="text-lg font-bold">${esc(n)}</div><div class="text-xs font-semibold">${esc(label)}</div></div>`
 
   function htmlPilih() {
-    return `<div class="mt-5 grid gap-4">
+    return `<div class="mt-5 grid min-w-0 gap-4" style="grid-template-columns:minmax(0,1fr)">
       <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <p class="text-sm font-bold text-slate-900">Langkah 1. Unduh template</p>
         <p class="mt-1 text-sm text-slate-600">Isi data siswa memakai template agar kolom sesuai.</p>
@@ -128,12 +128,12 @@ export function bukaImporSiswa({ onSelesai } = {}) {
   function htmlPratinjau() {
     const { total, valid, gagal, peringatan } = periksa
     const contoh = baris.slice(0, TAMPIL_PRATINJAU)
-    const tabel = `<div class="overflow-x-auto rounded-xl border border-slate-200"><table class="min-w-full text-left text-xs">
+    const tabel = `<div class="w-full max-w-full min-w-0 overflow-x-auto rounded-xl border border-slate-200" style="-webkit-overflow-scrolling:touch"><table class="min-w-full whitespace-nowrap text-left text-xs">
       <thead class="bg-slate-50 text-slate-500"><tr><th class="px-2.5 py-2 font-semibold">Baris</th>${KOLOM.map((k) => `<th class="px-2.5 py-2 font-semibold">${esc(k.judul)}</th>`).join('')}</tr></thead>
       <tbody>${contoh.map((r) => `<tr class="border-t border-slate-100"><td class="px-2.5 py-1.5 text-slate-400">${esc(r.baris)}</td>${KOLOM.map((k) => `<td class="px-2.5 py-1.5 text-slate-800">${esc(r[k.kunci] || '-')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
-    return `<div class="mt-5 grid gap-4">
-      <p class="text-sm font-semibold text-slate-600">File: <strong class="text-slate-900">${esc(namaFile)}</strong></p>
-      <div class="grid grid-cols-3 gap-3">
+    return `<div class="mt-5 grid min-w-0 gap-4" style="grid-template-columns:minmax(0,1fr)">
+      <p class="break-words text-sm font-semibold text-slate-600">File: <strong class="text-slate-900">${esc(namaFile)}</strong></p>
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
         ${ringkas(total, 'Baris dibaca', 'border-slate-200 bg-slate-50 text-slate-900')}
         ${ringkas(valid, 'Siap diimpor', 'border-emerald-200 bg-emerald-50 text-emerald-900')}
         ${ringkas(gagal.length, 'Dilewati', gagal.length ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-slate-200 bg-slate-50 text-slate-900')}</div>
@@ -171,7 +171,7 @@ export function bukaImporSiswa({ onSelesai } = {}) {
       isi = htmlSelesai()
       aksi = tutup
     }
-    d.innerHTML = `<div class="impor-isi"><h2 class="text-xl font-bold tracking-tight text-slate-900">${esc(judul)}</h2>${isi}
+    d.innerHTML = `<div class="impor-isi min-w-0 max-w-full"><h2 class="text-xl font-bold tracking-tight text-slate-900">${esc(judul)}</h2>${isi}
       <div class="dlg-aksi impor-aksi mt-6 flex flex-wrap justify-end gap-3">${aksi}</div></div>`
   }
 
