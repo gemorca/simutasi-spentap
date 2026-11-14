@@ -115,7 +115,7 @@ export function render(wadah, onBerhasil) {
           <p id="galat" role="alert" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700"></p>
           <button type="submit" id="kirim" class="btn login-kirim relative mt-1 inline-flex min-h-[2.875rem] overflow-hidden items-center justify-center gap-2.5 rounded-xl bg-blue-600 px-5 font-semibold text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 disabled:cursor-wait disabled:opacity-70">Masuk</button>
         </form>
-        <p class="mt-6 text-center text-xs font-medium text-slate-400 md:hidden">&copy; 2026 SMP Negeri 1 Tapa. All rights reserved.</p>
+        <p class="mt-6 text-center text-xs font-medium text-slate-400 md:hidden">&copy; 2026 SMP Negeri 1 Tapa. Pendidikan Ekonomi, UNG MENGAJAR BATCH X. All rights reserved.</p>
       </div>
     </div>`
 
