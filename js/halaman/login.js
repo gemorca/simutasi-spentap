@@ -81,7 +81,7 @@ export function render(wadah, onBerhasil) {
           <h2 class="login-judul gradien-teks text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">${HERO_JUDUL}</h2>
           <p class="login-isi mt-3 text-sm leading-relaxed text-slate-400">${HERO_ISI}</p>
         </div>
-        <p class="z-10 hidden text-xs font-medium text-slate-500 md:block">&copy; 2026 SMP Negeri 1 Tapa. Pendidikan Ekonomi, UNG MENGAJAR BATCH X. All rights reserved.</p>
+        <p class="z-10 hidden text-xs font-medium text-slate-500 md:block">&copy; 2026 SMP Negeri 1 Tapa. All rights reserved.</p>
       </div>
       <div class="p-8 sm:p-12 flex flex-col justify-center">
         <div class="mb-8">
