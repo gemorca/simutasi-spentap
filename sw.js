@@ -1,4 +1,4 @@
-const VERSI = 'sim-mutasi-v11'
+const VERSI = 'sim-mutasi-v12'
 const INTI = [
   './',
   'index.html',

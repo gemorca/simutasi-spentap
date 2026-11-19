@@ -1,4 +1,4 @@
-import { panggilApi, simpanToken } from '../api.js'
+import { panggilApi, simpanToken, muatAwal, bolehMuatAwal } from '../api.js'
 import { spinner } from '../ui.js'
 import { sapaanWaktu } from '../sapaan.js'
 
@@ -10,7 +10,15 @@ const KELAS_INPUT = 'w-full rounded-xl border border-slate-300 bg-slate-50/50 px
 const HERO_JUDUL = 'Sistem Informasi Mutasi Siswa'
 const HERO_ISI = 'Kelola pendaftaran, seleksi, serta rekapitulasi siswa pindahan secara terpadu, cepat, dan akurat.'
 
-const LAMA_SAMBUT = 7500
+const BAR_TUNDA = 2200
+const LAMA_MIN = 4000
+const LAMA_MAKS = 10000
+const TIK = 100
+const TARGET_HUBUNG = 0.3
+const TARGET_MUAT = 0.6
+const TEKS_HUBUNG = 'Menghubungi server...'
+const TEKS_MUAT = 'Memuat data...'
+const TEKS_SIAP = 'Menyiapkan tampilan...'
 const CENTANG = '<svg class="login-centang h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
 
 function buatSambut(pengguna) {
@@ -23,30 +31,57 @@ function buatSambut(pengguna) {
     <p class="login-sambut-salam"></p>
     <h2 class="login-sambut-nama gradien-teks"></h2>
     <div class="login-sambut-bar" aria-hidden="true"><span></span></div>
-    <p class="login-sambut-info">Menyiapkan aplikasi...</p>`
+    <p class="login-sambut-info">${TEKS_HUBUNG}</p>`
   el.querySelector('.login-sambut-salam').textContent = sapaanWaktu() + ','
   el.querySelector('.login-sambut-nama').textContent = pengguna.nama
   return el
 }
 
-function animasiSukses(wadah, tombol, pengguna) {
+function mulaiPrefetch(pengguna) {
+  const data = { target: TARGET_HUBUNG, selesai: false }
+  const tutup = () => { data.target = 1; data.selesai = true }
+  if (!bolehMuatAwal(pengguna)) { tutup(); return data }
+  muatAwal({
+    saatProgres: (p) => { if (p && p.tahap === 'server') data.target = Math.max(data.target, TARGET_MUAT) },
+  }).catch(() => {}).finally(tutup)
+  return data
+}
+
+function animasiSukses(wadah, tombol, pengguna, data) {
   return new Promise((selesai) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { selesai(); return }
     const pewaktu = []
     const nanti = (fn, ms) => pewaktu.push(setTimeout(fn, ms))
     const kartu = wadah.querySelector('.login-kartu')
     let sambut = null
+    let tik = null
     let berakhir = false
 
-    const saatTombol = (e) => { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); akhiri() } }
     function akhiri() {
       if (berakhir) return
       berakhir = true
       pewaktu.forEach(clearTimeout)
-      document.removeEventListener('keydown', saatTombol)
+      clearInterval(tik)
       if (!sambut) { selesai(); return }
       sambut.classList.add('keluar')
       setTimeout(selesai, 700)
+    }
+
+    function jalankanProgres() {
+      const bar = sambut.querySelector('.login-sambut-bar span')
+      const info = sambut.querySelector('.login-sambut-info')
+      const mulai = Date.now()
+      let penutup = false
+      tik = setInterval(() => {
+        const lalu = Date.now() - mulai
+        if (lalu >= LAMA_MAKS) { akhiri(); return }
+        const laju = Math.max(0, Math.min(1, (lalu - BAR_TUNDA) / LAMA_MIN))
+        const p = Math.min(data.target, 0.08 + 0.92 * laju)
+        bar.style.setProperty('--p', String(p))
+        const teks = p <= TARGET_HUBUNG ? TEKS_HUBUNG : p <= TARGET_MUAT ? TEKS_MUAT : TEKS_SIAP
+        if (info.textContent !== teks) info.textContent = teks
+        if (p >= 1 && !penutup) { penutup = true; nanti(akhiri, 450) }
+      }, TIK)
     }
 
     tombol.classList.add('login-kirim-ok')
@@ -54,11 +89,9 @@ function animasiSukses(wadah, tombol, pengguna) {
     nanti(() => { wadah.classList.add('login-sukses'); if (kartu) kartu.classList.add('login-keluar') }, 600)
     nanti(() => {
       sambut = buatSambut(pengguna)
-      sambut.addEventListener('click', akhiri)
-      document.addEventListener('keydown', saatTombol)
       wadah.appendChild(sambut)
+      jalankanProgres()
     }, 1150)
-    nanti(akhiri, 1150 + LAMA_SAMBUT)
   })
 }
 
@@ -181,7 +214,8 @@ export function render(wadah, onBerhasil) {
       sudahMasuk = true
       tombolKirim.disabled = false
       tombolKirim.setAttribute('aria-busy', 'false')
-      await animasiSukses(wadah, tombolKirim, hasil.pengguna)
+      const data = mulaiPrefetch(hasil.pengguna)
+      await animasiSukses(wadah, tombolKirim, hasil.pengguna, data)
       onBerhasil(hasil.pengguna)
     } catch (err) {
       sudahMasuk = false

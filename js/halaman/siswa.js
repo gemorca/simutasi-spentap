@@ -1,4 +1,5 @@
-import { panggilApi } from '../api.js'
+import { panggilApi, ambilCache, segarkan, umurCache } from '../api.js'
+import { saringSiswa } from '../saring.js'
 import {
   esc, KELAS, IKON, memuat, judulHalaman, medan, tandaiGalat, bersihkanGalat, bacaForm, barSimpan, sibukSimpan,
   galatMuat, tabel, lencana, isiUlang, pasangAksi, pilihanMassal, barAlat, barAksiBawah, ringkasanMassal,
@@ -10,6 +11,7 @@ import { bukaImporSiswa } from '../imporSiswa.js'
 const IK_ORANG = 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8'
 const IK_LIHAT = 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'
 const SATUAN = 'siswa'
+const SEGAR_MS = 10000
 const BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 
 function tanggalLengkap(t) {
@@ -40,6 +42,8 @@ export function render(wadah, pengguna) {
   const hanyaBaca = !admin
   let hasil = { total: 0, dipotong: false, daftar: [] }
   let kelas = []
+  let semuaSiswa = null
+  let kelasSiap = false
   let filter = { q: '', kelas_id: '' }
   let sibuk = false
   let layar = 0
@@ -109,29 +113,42 @@ export function render(wadah, pengguna) {
       + (hanyaBaca ? '' : barAksiBawah({ pilihan, satuan: SATUAN, sibuk })))
   }
 
-  async function ambil(semua) {
-    const [siswa, daftarKelas] = await Promise.all([
-      panggilApi('siswaDaftar', filter),
-      semua ? panggilApi('kelasDaftar') : Promise.resolve(kelas),
-    ])
-    hasil = siswa
-    kelas = daftarKelas
+  function pakaiCache() {
+    const s = ambilCache('siswa')
+    const k = ambilCache('kelas')
+    if (s) semuaSiswa = s.daftar
+    if (k) { kelas = k; kelasSiap = true }
+  }
+
+  const adaData = () => semuaSiswa !== null && kelasSiap
+  const masihSegar = () => ['siswa', 'kelas'].every((n) => { const u = umurCache(n); return u !== null && u < SEGAR_MS })
+
+  function saring() {
+    hasil = saringSiswa(semuaSiswa || [], filter)
     pilihan.setDaftar(hasil.daftar.map(idStr))
   }
 
-  async function muatIsi(semua = false, senyap = false) {
+  async function muatData() {
+    const [siswa, daftarKelas] = await Promise.all([segarkan('siswa'), segarkan('kelas')])
+    semuaSiswa = siswa.daftar
+    kelas = daftarKelas
+    kelasSiap = true
+  }
+
+  async function segarkanSenyap(tampilGalat = false) {
     const id = layar
     const saya = ++urutanCari
     const isi = wadah.querySelector('[data-isi]')
-    if (senyap && isi.firstElementChild) tandaiMemuat(isi, true)
-    else isi.innerHTML = memuat()
+    if (!isi) return
+    if (isi.firstElementChild) tandaiMemuat(isi, true)
     try {
-      await ambil(semua)
+      await muatData()
       if (id !== layar || saya !== urutanCari || !wadah.isConnected) return
+      saring()
       gambarIsi()
     } catch (err) {
       if (id !== layar || saya !== urutanCari || !wadah.isConnected) return
-      isi.innerHTML = galatMuat(err.message)
+      if (tampilGalat) tampilPesan({ jenis: 'galat', teks: err.message })
     } finally {
       if (saya === urutanCari) tandaiMemuat(isi, false)
     }
@@ -142,20 +159,24 @@ export function render(wadah, pengguna) {
     pilihan.selesai()
     sibuk = false
     pasangAksi(wadah, PETA_DAFTAR)
-    if (segar) {
+    pakaiCache()
+    let perluSegar = segar && !masihSegar()
+    if (!adaData()) {
       wadah.innerHTML = judul(false) + '<div data-isi></div>'
       const saya = ++urutanCari
       const isi = wadah.querySelector('[data-isi]')
       isi.innerHTML = memuat()
       try {
-        await ambil(true)
+        await muatData()
       } catch (err) {
         if (id !== layar || saya !== urutanCari || !wadah.isConnected) return
         isi.innerHTML = galatMuat(err.message)
         return
       }
       if (id !== layar || saya !== urutanCari || !wadah.isConnected) return
+      perluSegar = false
     }
+    saring()
     wadah.innerHTML = judul(true) + formFilter() + '<div data-isi></div>'
     const form = wadah.querySelector('[data-filter]')
     const baca = () => { filter = { q: form.elements.q.value, kelas_id: form.elements.kelas_id.value } }
@@ -166,13 +187,15 @@ export function render(wadah, pengguna) {
       if (tanda === terakhir) return
       terakhir = tanda
       pilihan.selesai()
-      muatIsi(false, true)
+      saring()
+      gambarIsi()
     }
-    const tundaCari = tunda(terapkan, 400)
+    const tundaCari = tunda(terapkan, 150)
     form.addEventListener('input', (e) => { baca(); if (e.target.name === 'q') tundaCari() })
     form.addEventListener('change', terapkan)
     form.addEventListener('submit', (e) => { e.preventDefault(); terapkan() })
     gambarIsi()
+    if (perluSegar) segarkanSenyap()
   }
 
   async function hapus(s) {
@@ -187,7 +210,7 @@ export function render(wadah, pengguna) {
     try {
       await panggilApi('siswaHapus', { id: s.id })
       tampilPesan({ jenis: 'sukses', teks: 'Data siswa berhasil dihapus' })
-      if (wadah.isConnected) muatIsi(true)
+      if (wadah.isConnected) segarkanSenyap()
     } catch (err) {
       tampilPesan({ jenis: 'galat', teks: err.message })
     }
@@ -214,7 +237,7 @@ export function render(wadah, pengguna) {
       tampilPesan({ jenis: 'galat', teks: err.message })
     }
     sibuk = false
-    if (wadah.isConnected) muatIsi(true)
+    if (wadah.isConnected) segarkanSenyap()
   }
 
   const PETA_DAFTAR = {
@@ -242,7 +265,7 @@ export function render(wadah, pengguna) {
     'pilih-semua': () => { pilihan.balikSemua(); gambarIsi() },
     pilih: (id) => { pilihan.balik(id); gambarIsi() },
     'hapus-terpilih': hapusTerpilih,
-    'muat-ulang': () => tampilDaftar(true),
+    'muat-ulang': () => (adaData() ? segarkanSenyap(true) : tampilDaftar(true)),
   }
 
   async function tampilDetail(s) {

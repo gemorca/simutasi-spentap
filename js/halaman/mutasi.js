@@ -1,6 +1,7 @@
-import { panggilApi } from '../api.js'
-import { esc, KELAS, IKON, memuat, judulHalaman, lencana, tabel, galatMuat, pasangAksi, tandaiMemuat } from '../ui.js'
+import { panggilApi, ambilCache } from '../api.js'
+import { esc, KELAS, IKON, judulHalaman, lencana, tabel, pasangAksi } from '../ui.js'
 import { formFilterMutasi, pasangFilter, opsiKelas } from '../mutasiFilter.js'
+import { sumberMutasi } from '../sumberMutasi.js'
 import { renderForm } from '../mutasiForm.js'
 import { renderDetail, pulihkanTerbuka, hapusTerbuka } from '../mutasiDetail.js'
 import { bukaImporMutasiArsip } from '../imporMutasiArsip.js'
@@ -20,7 +21,7 @@ export function render(wadah, pengguna) {
   const filter = { q: '', status: '', kelas_id: '', dari: '', sampai: '' }
   let kelas = []
   let kelasAda = false
-  let urutan = 0
+  const sumber = sumberMutasi(filter)
   const PEMILIK = 'siswaMasuk:' + pengguna.id
 
   function bukaForm(id) {
@@ -63,28 +64,16 @@ export function render(wadah, pengguna) {
       })
   }
 
-  async function muatIsi(akar, senyap = false) {
-    const saya = ++urutan
-    const isi = akar.querySelector('[data-isi]')
-    if (senyap && isi.firstElementChild) tandaiMemuat(isi, true)
-    else isi.innerHTML = memuat()
-    try {
-      const hasil = await panggilApi('mutasiDaftar', filter)
-      if (saya !== urutan || !akar.isConnected) return
-      gambarIsi(akar, hasil)
-    } catch (err) {
-      if (saya !== urutan || !akar.isConnected) return
-      isi.innerHTML = galatMuat(err.message)
-    } finally {
-      if (saya === urutan) tandaiMemuat(isi, false)
-    }
-  }
+  const muatIsi = (akar) => sumber.muat(akar.querySelector('[data-isi]'), (hasil) => gambarIsi(akar, hasil))
+  const saringIsi = (akar) => sumber.saring(akar.querySelector('[data-isi]'), (hasil) => gambarIsi(akar, hasil))
 
   function tampilDaftar() {
     hapusTerbuka()
     const akar = document.createElement('div')
     wadah.innerHTML = ''
     wadah.appendChild(akar)
+    const kelasCache = ambilCache('kelas')
+    if (kelasCache) { kelas = kelasCache; kelasAda = true }
     akar.innerHTML = judulHalaman({
       judul: 'Data Siswa Masuk',
       sub: bisaTulis
@@ -101,7 +90,7 @@ export function render(wadah, pengguna) {
       buka: (id) => bukaDetail(id),
       'muat-ulang': () => muatIsi(akar),
     })
-    pasangFilter(akar.querySelector('[data-filter]'), filter, () => muatIsi(akar, true))
+    pasangFilter(akar.querySelector('[data-filter]'), filter, () => saringIsi(akar))
     muatIsi(akar)
 
     if (!kelasAda) {

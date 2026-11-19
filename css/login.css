@@ -1,4 +1,3 @@
-
 :root { --l-lambat: cubic-bezier(0.22, 0.8, 0.3, 1); }
 
 @keyframes l-card-naik { from { opacity: 0; transform: translateY(72px); } to { opacity: 1; transform: none; } }
@@ -114,7 +113,6 @@
 @keyframes l-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes l-sambut-masuk { from { opacity: 0; } to { opacity: 1; } }
 @keyframes l-sambut-keluar { to { opacity: 0; transform: scale(1.05); } }
-@keyframes l-isi-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes l-app-masuk { from { opacity: 0; } to { opacity: 1; } }
 
 #layar::before { transition: filter 1000ms ease; }
@@ -132,7 +130,7 @@
 #layar > .login-sambut {
   position: fixed; inset: 0; z-index: 2;
   display: grid; place-content: center; justify-items: center; gap: 0.5rem;
-  padding: 1.5rem; text-align: center; cursor: pointer;
+  padding: 1.5rem; text-align: center; cursor: default;
   background: radial-gradient(ellipse at center, rgb(2 6 23 / 0.5), rgb(2 6 23 / 0.15) 72%);
   animation: l-sambut-masuk 1300ms ease both;
 }
@@ -155,7 +153,7 @@
 }
 @media (min-width: 640px) { .login-sambut-nama { font-size: 3.25rem; } }
 .login-sambut-bar { width: 11rem; height: 4px; margin-top: 1.25rem; overflow: hidden; border-radius: 999px; background: rgb(255 255 255 / 0.18); animation: l-naik-halus 1100ms var(--l-lambat) 2100ms both; }
-.login-sambut-bar span { display: block; height: 100%; border-radius: inherit; transform-origin: left; background: linear-gradient(90deg, #3b82f6, #ffffff); animation: l-isi-bar 5000ms linear 2200ms both; }
+.login-sambut-bar span { display: block; height: 100%; border-radius: inherit; transform-origin: left; background: linear-gradient(90deg, #3b82f6, #ffffff); transform: scaleX(var(--p, 0)); transition: transform 300ms linear; will-change: transform; }
 .login-sambut-info { font-size: 0.75rem; font-weight: 500; color: #cbd5e1; animation: l-naik-halus 1100ms var(--l-lambat) 2200ms both; }
 
 #aplikasi:not(.hidden) { animation: l-app-masuk 600ms ease both; }
@@ -163,7 +161,7 @@
 @media (prefers-reduced-motion: reduce) {
   #layar::before, .login-orb, .login-denyut::before, .gradien-teks,
   #layar > .login-kartu, .login-logo, .login-nama, .login-lencana, .login-isi,
-  #layar > .login-sambut, .login-sambut-logo, .login-sambut-salam, .login-sambut-bar span, .login-centang path, #aplikasi:not(.hidden),
+  #layar > .login-sambut, .login-sambut-logo, .login-sambut-salam, .login-centang path, #aplikasi:not(.hidden),
   #form-login .login-kirim:hover:not(:disabled)::after { animation: none; }
   .login-judul.gradien-teks, .login-sambut-nama.gradien-teks { animation: none; -webkit-mask-image: none; mask-image: none; }
 }

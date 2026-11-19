@@ -1,4 +1,4 @@
-import { panggilApi, ambilToken, hapusToken } from './api.js'
+import { panggilApi, ambilToken, hapusToken, muatAwal, bolehMuatAwal } from './api.js'
 import { menuUntuk, NAMA_PERAN } from './menu.js'
 import { bacaHalaman, pindah, saatBerubah, HALAMAN, TAHAP } from './router.js'
 import { esc, ikon, memuat, dialogKonfirmasi } from './ui.js'
@@ -333,6 +333,7 @@ async function mulai() {
   if (!ambilToken()) return tampilLogin()
   try {
     pengguna = await panggilApi('me')
+    if (bolehMuatAwal(pengguna)) muatAwal().catch(() => {})
     masuk()
   } catch {
     hapusToken()

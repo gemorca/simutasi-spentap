@@ -1,4 +1,4 @@
-import { panggilApi } from '../api.js'
+import { panggilApi, ambilCache, segarkan, umurCache } from '../api.js'
 import {
   esc, KELAS, IKON, memuat, judulHalaman, medan, tandaiGalat, bersihkanGalat, bacaForm, barSimpan, sibukSimpan,
   galatMuat, tabel, isiUlang, pasangAksi, pilihanMassal, barAlat, barAksiBawah, ringkasanMassal,
@@ -16,6 +16,7 @@ const ATURAN = {
   kuota: [wajib('Kuota wajib diisi'), angkaMin(0, 'Kuota harus bilangan bulat, minimal 0')],
 }
 const SATUAN = 'kelas'
+const SEGAR_MS = 10000
 
 export function render(wadah, pengguna) {
   if (!pengguna || pengguna.peran !== 'admin') {
@@ -24,6 +25,7 @@ export function render(wadah, pengguna) {
   }
   let daftar = []
   let tampil = []
+  let sudahMuat = false
   let sibuk = false
   let layar = 0
   let urutan = 0
@@ -119,22 +121,27 @@ export function render(wadah, pengguna) {
       + barAksiBawah({ pilihan, satuan: SATUAN, sibuk }))
   }
 
-  async function muat(senyap = false) {
+  async function muat({ paksa = false } = {}) {
     const saya = layar
     const urut = ++urutan
     const isi = wadah.querySelector('[data-isi]')
     if (!isi) return
-    if (senyap && isi.firstElementChild) tandaiMemuat(isi, true)
-    else isi.innerHTML = memuat()
+    const cache = ambilCache('kelas')
+    if (cache) { daftar = [...cache].sort(urutKelas); sudahMuat = true }
+    if (sudahMuat) { segarkanOpsi(); gambarIsi() } else isi.innerHTML = memuat()
+    if (cache && !paksa && umurCache('kelas') < SEGAR_MS) return
+    if (sudahMuat) tandaiMemuat(isi, true)
     try {
-      const hasil = await panggilApi('kelasDaftar')
+      const hasil = await segarkan('kelas')
       if (saya !== layar || urut !== urutan || !wadah.isConnected) return
       daftar = [...hasil].sort(urutKelas)
+      sudahMuat = true
       segarkanOpsi()
       gambarIsi()
     } catch (err) {
       if (saya !== layar || urut !== urutan || !wadah.isConnected) return
-      isi.innerHTML = galatMuat(err.message)
+      if (!sudahMuat) isi.innerHTML = galatMuat(err.message)
+      else if (paksa) tampilPesan({ jenis: 'galat', teks: err.message })
     } finally {
       if (urut === urutan) tandaiMemuat(isi, false)
     }
@@ -152,7 +159,7 @@ export function render(wadah, pengguna) {
     pasangAksi(wadah, PETA_DAFTAR)
     pasangFilter(wadah.querySelector('[data-filter]'), filter, () => {
       pilihan.selesai()
-      muat(true)
+      gambarIsi()
     })
     if (segar) return muat()
     gambarIsi()
@@ -209,7 +216,7 @@ export function render(wadah, pengguna) {
     'pilih-semua': () => { pilihan.balikSemua(); gambarIsi() },
     pilih: (id) => { pilihan.balik(id); gambarIsi() },
     'hapus-terpilih': hapusTerpilih,
-    'muat-ulang': () => muat(),
+    'muat-ulang': () => muat({ paksa: true }),
   }
 
   function tampilForm(k) {

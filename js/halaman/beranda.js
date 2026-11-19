@@ -1,5 +1,5 @@
-import { panggilApi } from '../api.js'
-import { esc, ikon, memuat, judulHalaman, statusKosong, tampilPesan } from '../ui.js'
+import { panggilApi, ambilCache, segarkan, umurCache } from '../api.js'
+import { esc, ikon, memuat, judulHalaman, statusKosong, tampilPesan, tandaiMemuat } from '../ui.js'
 import { NAMA_BULAN, parameterPeriode, pengendaliPeriode } from '../periode.js'
 import { persen } from '../util.js'
 import { sapaanWaktu } from '../sapaan.js'
@@ -11,6 +11,9 @@ const IK_KUOTA = 'M3 7l9-4 9 4-9 4-9-4ZM3 12l9 4 9-4M3 17l9 4 9-4'
 const IK_TUNGGU = 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20ZM12 6v6l4 2'
 const IK_GRAFIK = 'M3 3v18h18M7 16v-4M12 16V8M17 16v-7'
 const IK_KELAS = 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6'
+
+const SEGAR_MS = 10000
+const periodeBawaan = (f) => f.mode === 'tahun' && !f.tahun_ajaran
 
 const labelBulan = (kunci) => NAMA_BULAN[Number(kunci.split('-')[1]) - 1].substring(0, 3)
 const labelPanjang = (kunci) => { const [t, b] = kunci.split('-'); return NAMA_BULAN[Number(b) - 1] + ' ' + t }
@@ -108,16 +111,30 @@ export function render(wadah, pengguna) {
   let urutan = 0
   async function muat() {
     const saya = ++urutan
-    isi.innerHTML = memuat('Memuat dashboard...')
+    const awal = periodeBawaan(periode.s.filter)
+    const cache = awal ? ambilCache('dashboard') : undefined
+    const tampak = Boolean(cache)
+    if (cache) {
+      periode.setDaftar(cache.daftar_tahun_ajaran, cache.periode.tahun_ajaran)
+      isi.innerHTML = tampil(cache)
+      if (umurCache('dashboard') < SEGAR_MS) return
+      tandaiMemuat(isi, true)
+    } else {
+      isi.innerHTML = memuat('Memuat dashboard...')
+    }
     try {
-      const d = await panggilApi('dashboard', parameterPeriode(periode.s.filter))
+      const d = awal ? await segarkan('dashboard') : await panggilApi('dashboard', parameterPeriode(periode.s.filter))
       if (saya !== urutan || !isi.isConnected) return
       periode.setDaftar(d.daftar_tahun_ajaran, d.periode.tahun_ajaran)
       isi.innerHTML = tampil(d)
     } catch (err) {
       if (saya !== urutan || !isi.isConnected) return
-      isi.innerHTML = ''
-      tampilPesan({ jenis: 'galat', teks: err.message })
+      if (!tampak) {
+        isi.innerHTML = ''
+        tampilPesan({ jenis: 'galat', teks: err.message })
+      }
+    } finally {
+      if (saya === urutan) tandaiMemuat(isi, false)
     }
   }
   muat()
