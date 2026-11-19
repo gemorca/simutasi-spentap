@@ -247,17 +247,19 @@ export function render(wadah, pengguna) {
       bukaImporSiswa({ onSelesai: () => { if (wadah.isConnected) tampilDaftar(true) } })
     },
     detail: (id) => { const s = cari(id); if (s) tampilDetail(s) },
-    ubah: async (id) => {
+    ubah: (id) => {
       const s = cari(id)
       if (!s || !admin) return
+      tampilForm(s, true)
       const saat = layar
-      try {
-        const detail = await panggilApi('siswaDetail', { id: s.id })
+      panggilApi('siswaDetail', { id: s.id }).then((detail) => {
         if (saat !== layar || !wadah.isConnected) return
-        tampilForm({ ...s, ...detail })
-      } catch (err) {
-        if (saat === layar && wadah.isConnected) tampilPesan({ jenis: 'galat', teks: err.message })
-      }
+        lengkapiForm(detail)
+      }).catch((err) => {
+        if (saat !== layar || !wadah.isConnected) return
+        tampilPesan({ jenis: 'galat', teks: err.message })
+        tampilDaftar(false)
+      })
     },
     hapus: (id) => hapus(cari(id)),
     'mulai-pilih': () => { pilihan.mulai(); gambarIsi() },
@@ -316,7 +318,23 @@ export function render(wadah, pengguna) {
     })
   }
 
-  function tampilForm(s) {
+  const KOLOM_DETAIL = { alamat: 'Alamat lengkap siswa', nama_ayah: 'Nama lengkap ayah', nama_ibu: 'Nama lengkap ibu' }
+
+  function lengkapiForm(detail) {
+    const form = wadah.querySelector('form')
+    if (!form) return
+    for (const [nama, placeholder] of Object.entries(KOLOM_DETAIL)) {
+      const el = form.elements[nama]
+      if (!el) continue
+      el.value = detail[nama] || ''
+      el.placeholder = placeholder
+      el.disabled = false
+    }
+    const simpan = form.querySelector('[data-simpan]')
+    if (simpan) simpan.disabled = false
+  }
+
+  function tampilForm(s, menunggu = false) {
     if (!bisaTambah || (s && !admin)) return
     const id = ++layar
     const ubah = Boolean(s)
@@ -349,14 +367,15 @@ export function render(wadah, pengguna) {
         })}
         ${medan({ label: 'Tempat lahir', nama: 'tempat_lahir', nilai: n.tempat_lahir, placeholder: 'Contoh: Manado', atribut: { autocomplete: 'off' } })}
         ${medan({ label: 'Tanggal lahir', nama: 'tanggal_lahir', nilai: n.tanggal_lahir, tipe: 'date' })}
-        ${medan({ label: 'Alamat', nama: 'alamat', nilai: n.alamat, tipe: 'textarea', baris: 3, penuh: true, catatan: 'Boleh dikosongkan. Maksimal 300 karakter.', placeholder: 'Alamat lengkap siswa', atribut: { maxlength: 300 } })}
-        ${medan({ label: 'Nama ayah', nama: 'nama_ayah', nilai: n.nama_ayah, placeholder: 'Nama lengkap ayah', atribut: { maxlength: 100, autocomplete: 'off' } })}
-        ${medan({ label: 'Nama ibu', nama: 'nama_ibu', nilai: n.nama_ibu, placeholder: 'Nama lengkap ibu', atribut: { maxlength: 100, autocomplete: 'off' } })}
+        ${medan({ label: 'Alamat', nama: 'alamat', nilai: n.alamat, tipe: 'textarea', baris: 3, penuh: true, catatan: 'Boleh dikosongkan. Maksimal 300 karakter.', placeholder: menunggu ? 'Memuat...' : 'Alamat lengkap siswa', nonaktif: menunggu, atribut: { maxlength: 300 } })}
+        ${medan({ label: 'Nama ayah', nama: 'nama_ayah', nilai: n.nama_ayah, placeholder: menunggu ? 'Memuat...' : 'Nama lengkap ayah', nonaktif: menunggu, atribut: { maxlength: 100, autocomplete: 'off' } })}
+        ${medan({ label: 'Nama ibu', nama: 'nama_ibu', nilai: n.nama_ibu, placeholder: menunggu ? 'Memuat...' : 'Nama lengkap ibu', nonaktif: menunggu, atribut: { maxlength: 100, autocomplete: 'off' } })}
       </div>${barSimpan()}</form>`
     window.scrollTo(0, 0)
     pasangAksi(wadah, { kembali: () => tampilDaftar(false) })
 
     const form = wadah.querySelector('form')
+    if (menunggu) form.querySelector('[data-simpan]').disabled = true
     form.addEventListener('input', (e) => { if (e.target.name) bersihkanGalat(form, e.target.name) })
     form.addEventListener('change', (e) => { if (e.target.name) bersihkanGalat(form, e.target.name) })
     form.addEventListener('submit', async (e) => {
