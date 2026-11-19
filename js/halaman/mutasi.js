@@ -27,6 +27,7 @@ export function render(wadah, pengguna) {
   function bukaForm(id) {
     renderForm(wadah, {
       id,
+      awal: id ? sumber.cari(id) : null,
       onSelesai: (idBaru) => (idBaru ? bukaDetail(idBaru) : tampilDaftar()),
     })
     window.scrollTo(0, 0)

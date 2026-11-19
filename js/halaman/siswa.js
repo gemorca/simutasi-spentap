@@ -250,13 +250,14 @@ export function render(wadah, pengguna) {
     ubah: (id) => {
       const s = cari(id)
       if (!s || !admin) return
-      tampilForm(s, true)
+      const lengkap = 'alamat' in s
+      tampilForm(s, !lengkap)
       const saat = layar
       panggilApi('siswaDetail', { id: s.id }).then((detail) => {
         if (saat !== layar || !wadah.isConnected) return
         lengkapiForm(detail)
       }).catch((err) => {
-        if (saat !== layar || !wadah.isConnected) return
+        if (lengkap || saat !== layar || !wadah.isConnected) return
         tampilPesan({ jenis: 'galat', teks: err.message })
         tampilDaftar(false)
       })
@@ -320,13 +321,18 @@ export function render(wadah, pengguna) {
 
   const KOLOM_DETAIL = { alamat: 'Alamat lengkap siswa', nama_ayah: 'Nama lengkap ayah', nama_ibu: 'Nama lengkap ibu' }
 
+  let disentuh = new Set()
+
   function lengkapiForm(detail) {
     const form = wadah.querySelector('form')
     if (!form) return
     for (const [nama, placeholder] of Object.entries(KOLOM_DETAIL)) {
       const el = form.elements[nama]
       if (!el) continue
-      el.value = detail[nama] || ''
+      if (!disentuh.has(nama)) {
+        const nilai = detail[nama] || ''
+        if (el.value !== nilai) el.value = nilai
+      }
       el.placeholder = placeholder
       el.disabled = false
     }
@@ -338,6 +344,7 @@ export function render(wadah, pengguna) {
     if (!bisaTambah || (s && !admin)) return
     const id = ++layar
     const ubah = Boolean(s)
+    disentuh = new Set()
     const n = ubah
       ? {
         nisn_nis: s.nisn_nis || '', nama: s.nama, jenis_kelamin: s.jenis_kelamin,
@@ -376,8 +383,8 @@ export function render(wadah, pengguna) {
 
     const form = wadah.querySelector('form')
     if (menunggu) form.querySelector('[data-simpan]').disabled = true
-    form.addEventListener('input', (e) => { if (e.target.name) bersihkanGalat(form, e.target.name) })
-    form.addEventListener('change', (e) => { if (e.target.name) bersihkanGalat(form, e.target.name) })
+    form.addEventListener('input', (e) => { if (e.target.name) { disentuh.add(e.target.name); bersihkanGalat(form, e.target.name) } })
+    form.addEventListener('change', (e) => { if (e.target.name) { disentuh.add(e.target.name); bersihkanGalat(form, e.target.name) } })
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
       if (form.querySelector('[data-simpan]').disabled) return

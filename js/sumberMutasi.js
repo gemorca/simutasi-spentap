@@ -34,5 +34,9 @@ export function sumberMutasi(filter) {
         }
     }
 
-    return { saring, muat }
+    function cari(id) {
+        return semua ? semua.find((m) => String(m.id) === String(id)) || null : null
+    }
+
+    return { saring, muat, cari }
 }

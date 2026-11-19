@@ -1,4 +1,4 @@
-import { panggilApi } from './api.js'
+import { panggilApi, ambilCache } from './api.js'
 import {
   KELAS, memuat, judulHalaman, medan, bacaForm, barSimpan, sibukSimpan, galatMuat, pasangAksi, tampilPesan,
 } from './ui.js'
@@ -6,6 +6,13 @@ import { periksa, wajib } from './validasi.js'
 
 const KOLOM = ['nama_siswa', 'nisn_nis', 'jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'kelas_id', 'tanggal', 'sekolah', 'alamat', 'alasan', 'catatan']
 const TEKS_SIMPAN = 'Simpan sebagai Draft'
+const KUNCI_DETAIL = ['jenis_kelamin', 'tempat_lahir', 'tanggal_lahir', 'alamat', 'alasan', 'catatan']
+const PLACEHOLDER = {
+  tempat_lahir: 'Contoh: Gorontalo',
+  alamat: 'Alamat lengkap siswa',
+  alasan: 'Contoh: Mengikuti orang tua',
+  catatan: 'Boleh dikosongkan',
+}
 
 const ATURAN = {
   nama_siswa: [wajib('Nama siswa wajib diisi')],
@@ -63,10 +70,12 @@ function tandaiSemua(form, galat) {
   return pertama
 }
 
-export function renderForm(wadah, { id = '', onSelesai }) {
+export function renderForm(wadah, { id = '', awal = null, onSelesai }) {
   const akar = document.createElement('div')
   wadah.innerHTML = ''
   wadah.appendChild(akar)
+  const disentuh = new Set()
+  const dikunci = new Set()
 
   const judul = (ubah) => judulHalaman({
     judul: (ubah ? 'Ubah' : 'Tambah') + ' Siswa Masuk',
@@ -74,7 +83,46 @@ export function renderForm(wadah, { id = '', onSelesai }) {
     aksi: `<button type="button" data-aksi="kembali" class="${KELAS.tombol}">Batal</button>`,
   })
 
-  async function muat() {
+  function lengkapi(m) {
+    const form = akar.querySelector('form')
+    if (!form) return
+    KOLOM.forEach((nama) => {
+      const el = form.elements[nama]
+      if (!el || disentuh.has(nama)) return
+      const nilai = m[nama] == null ? '' : String(m[nama])
+      if (el.value !== nilai) el.value = nilai
+      if (PLACEHOLDER[nama]) el.placeholder = PLACEHOLDER[nama]
+    })
+    dikunci.forEach((nama) => {
+      const el = form.elements[nama]
+      if (!el) return
+      el.disabled = false
+      if (el.tagName === 'SELECT') {
+        const kosong = [...el.options].find((o) => o.value === '' && o.disabled)
+        if (kosong) kosong.remove()
+        if (nama === 'kelas_id' && el.options[0] && el.options[0].value === '') el.options[0].text = '(pilih kelas)'
+      }
+    })
+    dikunci.clear()
+    const simpan = form.querySelector('[data-simpan]')
+    if (simpan) simpan.disabled = false
+  }
+
+  async function muat(pakaiAwal = true) {
+    const baris = pakaiAwal && id ? awal : null
+    const kelasCache = baris ? ambilCache('kelas') : undefined
+    if (baris && kelasCache) {
+      gambar(kelasCache, baris, true)
+      try {
+        const detail = await panggilApi('mutasiDetail', { id })
+        if (!akar.isConnected) return
+        lengkapi(detail.mutasi)
+      } catch (err) {
+        if (!akar.isConnected) return
+        akar.innerHTML = judul(true) + galatMuat(err.message)
+      }
+      return
+    }
     akar.innerHTML = judul(Boolean(id)) + memuat()
     try {
       const [kelas, detail] = await Promise.all([
@@ -89,12 +137,19 @@ export function renderForm(wadah, { id = '', onSelesai }) {
     }
   }
 
-  function gambar(kelas, m) {
+  function gambar(kelas, m, menunggu = false) {
+    dikunci.clear()
+    if (menunggu) {
+      KUNCI_DETAIL.forEach((nama) => dikunci.add(nama))
+      if (m.kelas_id === undefined) dikunci.add('kelas_id')
+    }
+    const nk = (nama) => dikunci.has(nama)
+    const ph = (nama, teks) => (nk(nama) ? 'Memuat...' : teks)
     const n = m
       ? {
-        nama_siswa: m.nama_siswa, nisn_nis: m.nisn_nis || '', jenis_kelamin: m.jenis_kelamin,
-        tempat_lahir: m.tempat_lahir || '', tanggal_lahir: m.tanggal_lahir || '', kelas_id: m.kelas_id,
-        tanggal: m.tanggal, sekolah: m.sekolah, alamat: m.alamat, alasan: m.alasan, catatan: m.catatan || '',
+        nama_siswa: m.nama_siswa, nisn_nis: m.nisn_nis || '', jenis_kelamin: m.jenis_kelamin || '',
+        tempat_lahir: m.tempat_lahir || '', tanggal_lahir: m.tanggal_lahir || '', kelas_id: m.kelas_id || '',
+        tanggal: m.tanggal || '', sekolah: m.sekolah || '', alamat: m.alamat || '', alasan: m.alasan || '', catatan: m.catatan || '',
       }
       : {
         nama_siswa: '', nisn_nis: '', jenis_kelamin: 'L', tempat_lahir: '', tanggal_lahir: '', kelas_id: '',
@@ -102,29 +157,30 @@ export function renderForm(wadah, { id = '', onSelesai }) {
       }
     const seksi = (judulSeksi, isi) => `<fieldset class="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <legend class="px-3 text-sm font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded-lg py-1">${judulSeksi}</legend><div class="mt-4 grid gap-5 sm:grid-cols-2">${isi}</div></fieldset>`
-    const kelasPilihan = [{ nilai: '', label: '(pilih kelas)' }]
+    const kelasPilihan = [{ nilai: '', label: nk('kelas_id') ? 'Memuat...' : '(pilih kelas)' }]
       .concat(kelas.map((k) => ({ nilai: k.id, label: k.nama_kelas + ' - ' + k.tahun_ajaran + ' (sisa ' + k.sisa + ')' })))
 
     akar.innerHTML = judul(Boolean(m)) + `<form novalidate>
       ${seksi('1. Data Pribadi Siswa', `
         ${medan({ label: 'Nama lengkap siswa', nama: 'nama_siswa', nilai: n.nama_siswa, wajib: true, penuh: true, placeholder: 'Contoh: Ahmad Fauzi', atribut: { autocomplete: 'off' } })}
         ${medan({ label: 'NISN / NIS (jika ada)', nama: 'nisn_nis', nilai: n.nisn_nis, placeholder: 'Boleh dikosongkan', atribut: { inputmode: 'numeric' } })}
-        ${medan({ label: 'Jenis kelamin', nama: 'jenis_kelamin', nilai: n.jenis_kelamin, wajib: true, pilihan: [{ nilai: 'L', label: 'Laki-laki' }, { nilai: 'P', label: 'Perempuan' }] })}
-        ${medan({ label: 'Tempat lahir', nama: 'tempat_lahir', nilai: n.tempat_lahir, wajib: true, placeholder: 'Contoh: Gorontalo' })}
-        ${medan({ label: 'Tanggal lahir', nama: 'tanggal_lahir', nilai: n.tanggal_lahir, wajib: true, tipe: 'date' })}
-        ${medan({ label: 'Alamat siswa', nama: 'alamat', nilai: n.alamat, wajib: true, penuh: true, placeholder: 'Alamat lengkap siswa' })}`)}
+        ${medan({ label: 'Jenis kelamin', nama: 'jenis_kelamin', nilai: n.jenis_kelamin, wajib: true, placeholder: ph('jenis_kelamin', ''), nonaktif: nk('jenis_kelamin'), pilihan: [{ nilai: 'L', label: 'Laki-laki' }, { nilai: 'P', label: 'Perempuan' }] })}
+        ${medan({ label: 'Tempat lahir', nama: 'tempat_lahir', nilai: n.tempat_lahir, wajib: true, placeholder: ph('tempat_lahir', 'Contoh: Gorontalo'), nonaktif: nk('tempat_lahir') })}
+        ${medan({ label: 'Tanggal lahir', nama: 'tanggal_lahir', nilai: n.tanggal_lahir, wajib: true, tipe: 'date', nonaktif: nk('tanggal_lahir') })}
+        ${medan({ label: 'Alamat siswa', nama: 'alamat', nilai: n.alamat, wajib: true, penuh: true, placeholder: ph('alamat', 'Alamat lengkap siswa'), nonaktif: nk('alamat') })}`)}
       ${seksi('2. Penempatan Kelas', `
-        ${medan({ label: 'Kelas tujuan', nama: 'kelas_id', nilai: n.kelas_id, wajib: true, pilihan: kelasPilihan })}
+        ${medan({ label: 'Kelas tujuan', nama: 'kelas_id', nilai: n.kelas_id, wajib: true, nonaktif: nk('kelas_id'), pilihan: kelasPilihan })}
         ${medan({ label: 'Tanggal masuk', nama: 'tanggal', nilai: n.tanggal, wajib: true, tipe: 'date' })}`)}
       ${seksi('3. Asal dan Alasan Pindah', `
         ${medan({ label: 'Sekolah asal', nama: 'sekolah', nilai: n.sekolah, wajib: true, placeholder: 'Nama sekolah asal' })}
-        ${medan({ label: 'Alasan pindah', nama: 'alasan', nilai: n.alasan, wajib: true, placeholder: 'Contoh: Mengikuti orang tua' })}
-        ${medan({ label: 'Catatan (boleh kosong)', nama: 'catatan', nilai: n.catatan, penuh: true, placeholder: 'Boleh dikosongkan' })}`)}
+        ${medan({ label: 'Alasan pindah', nama: 'alasan', nilai: n.alasan, wajib: true, placeholder: ph('alasan', 'Contoh: Mengikuti orang tua'), nonaktif: nk('alasan') })}
+        ${medan({ label: 'Catatan (boleh kosong)', nama: 'catatan', nilai: n.catatan, penuh: true, placeholder: ph('catatan', 'Boleh dikosongkan'), nonaktif: nk('catatan') })}`)}
       ${barSimpan({ teks: TEKS_SIMPAN })}</form>`
     window.scrollTo(0, 0)
 
     const form = akar.querySelector('form')
-    const bersih = (e) => { if (e.target.name) setGalat(form, e.target.name, '') }
+    if (menunggu) form.querySelector('[data-simpan]').disabled = true
+    const bersih = (e) => { if (e.target.name) { disentuh.add(e.target.name); setGalat(form, e.target.name, '') } }
     form.addEventListener('input', bersih)
     form.addEventListener('change', bersih)
 
@@ -156,6 +212,6 @@ export function renderForm(wadah, { id = '', onSelesai }) {
     if (pertama) pertama.focus()
   }
 
-  pasangAksi(akar, { kembali: () => onSelesai(''), 'muat-ulang': muat })
+  pasangAksi(akar, { kembali: () => onSelesai(''), 'muat-ulang': () => muat(false) })
   muat()
 }
